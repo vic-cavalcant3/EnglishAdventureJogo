@@ -11,6 +11,8 @@ session_start();
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+      <link rel="icon" type="image/png" href="src/imgs/logo.png">
+  <title>English Adventure</title>
     <style>
         /* (Seu CSS completo, que você já tem) */
         /* ... */

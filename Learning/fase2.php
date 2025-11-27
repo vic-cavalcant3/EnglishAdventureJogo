@@ -211,7 +211,7 @@ require_once("conexao.php");
       <p>Mas primeiro, você já conhece os <br>  segredos por trás do verbo To be?</p>
       <div class="botoes">
   <a href="conheço.php " class="btn sim">Sim, conheço</a>
-<a href="nao_conheço.php" class="btn nao">Não faço ideia</a>
+<a href="pag1.html" class="btn nao">Não faço ideia</a>
 </div>
     </div>
   </section>

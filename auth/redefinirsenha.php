@@ -20,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (empty($email)) {
             $erro = "Por favor, insira seu email.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $erro = "Por favor, insira um email válido.";
         } else {
             try {
                 $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
@@ -31,12 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if ($stmt->fetch()) {
                     $_SESSION['email_redefinir'] = $email;
+                    $_SESSION['tempo_verificacao'] = time();
                     $email_verificado = true;
                 } else {
-                    $erro = "Email não encontrado no sistema.";
+                    $erro = "Se este email estiver cadastrado, você poderá redefinir a senha.";
                 }
             } catch(PDOException $e) {
                 $erro = "Erro ao conectar ao banco de dados.";
+                error_log($e->getMessage());
             }
         }
     }
@@ -47,11 +51,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $confirma_senha = $_POST['confirma-senha'] ?? '';
         $email = $_SESSION['email_redefinir'] ?? '';
         
-        if (empty($nova_senha) || empty($confirma_senha)) {
+        // Verificar se a sessão não expirou (15 minutos)
+        if (!isset($_SESSION['tempo_verificacao']) || (time() - $_SESSION['tempo_verificacao']) > 900) {
+            $erro = "Sessão expirada. Por favor, verifique seu email novamente.";
+            unset($_SESSION['email_redefinir']);
+            unset($_SESSION['tempo_verificacao']);
+            $email_verificado = false;
+        } elseif (empty($email)) {
+            $erro = "Erro na verificação. Por favor, comece novamente.";
+            $email_verificado = false;
+        } elseif (empty($nova_senha) || empty($confirma_senha)) {
             $erro = "Por favor, preencha todos os campos.";
-            $email_verificado = true;
-        } elseif (strlen($nova_senha) < 6) {
-            $erro = "A senha deve ter pelo menos 6 caracteres.";
             $email_verificado = true;
         } elseif ($nova_senha !== $confirma_senha) {
             $erro = "As senhas não coincidem.";
@@ -68,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Limpar sessão
                 unset($_SESSION['email_redefinir']);
+                unset($_SESSION['tempo_verificacao']);
                 
                 // Redirecionar para login com mensagem de sucesso
                 $_SESSION['mensagem_sucesso'] = "Senha redefinida com sucesso! Faça login com sua nova senha.";
@@ -75,15 +86,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             } catch(PDOException $e) {
                 $erro = "Erro ao redefinir senha. Tente novamente.";
+                error_log($e->getMessage());
                 $email_verificado = true;
             }
         }
     }
 }
 
-// Verificar se já tem email na sessão
-if (isset($_SESSION['email_redefinir'])) {
-    $email_verificado = true;
+// Verificar se já tem email na sessão e se não expirou
+if (isset($_SESSION['email_redefinir']) && isset($_SESSION['tempo_verificacao'])) {
+    if ((time() - $_SESSION['tempo_verificacao']) <= 900) {
+        $email_verificado = true;
+    } else {
+        unset($_SESSION['email_redefinir']);
+        unset($_SESSION['tempo_verificacao']);
+        $erro = "Sessão expirada. Por favor, verifique seu email novamente.";
+    }
+}
+
+// Botão para cancelar e voltar
+if (isset($_GET['cancelar'])) {
+    unset($_SESSION['email_redefinir']);
+    unset($_SESSION['tempo_verificacao']);
+    header('Location: login.php');
+    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -91,11 +117,12 @@ if (isset($_SESSION['email_redefinir'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redefinir Senha - English Adventure</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+      <link rel="icon" type="image/png" href="../src/imgs/logo.png">
+  <title>English Adventure</title>
     
     <style>
         @keyframes fadeIn {
@@ -179,7 +206,7 @@ if (isset($_SESSION['email_redefinir'])) {
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url(../../imgs/barcoNOrio.png);
+            background-image: url(../src/imgs/barcoNOrio.png);
             background-repeat: no-repeat;
             background-position: center bottom;
             background-size: cover; 
@@ -187,7 +214,7 @@ if (isset($_SESSION['email_redefinir'])) {
 
         .titulo-principal {
             position: absolute;
-            top: 100px; 
+            top: 80px; 
             text-align: center;
             z-index: 20; 
         }
@@ -201,63 +228,67 @@ if (isset($_SESSION['email_redefinir'])) {
 
         .card-redefinir {
             background-color: var(--cor-fundo-card);
-            padding: 50px 70px; 
+            padding: 40px 50px; 
             border-radius: 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 750px; 
+            max-width: 600px; 
             text-align: center;
             position: relative; 
             z-index: 10;
-            margin-top: 100px; 
+            margin-top: 60px; 
+            height: auto;
+            min-height: 300px;
         }
 
         .subtitulo {
             font-size: 16px;
             color: var(--cor-texto-principal);
             opacity: 0.8; 
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             line-height: 1.5;
-            font-weight: 400; 
+            font-weight: 500; 
         }
 
         .mensagem-erro {
             background-color: #f8d7da;
             color: #721c24;
-            padding: 12px;
+            padding: 10px;
             border-radius: 5px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border: 1px solid #f5c6cb;
+            font-size: 13px;
         }
 
         form {
             display: flex;
             flex-direction: column;
             align-items: center; 
+            width: 100%;
         }
 
         label {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--cor-texto-principal);
-            margin-bottom: 8px;
-            font-weight: 700; 
+            margin-bottom: 6px;
+            font-weight: 600; 
             width: 100%;
-            max-width: 500px;
+            max-width: 400px;
             text-align: left; 
         }
 
         input[type="email"],
         input[type="password"] {
-            padding: 12px 15px;
-            margin-bottom: 20px;
+            padding: 10px 12px;
+            margin-bottom: 15px;
             border: 1px solid var(--cor-borda-input);
-            border-radius: 10px; 
-            font-size: 16px;
+            border-radius: 8px; 
+            font-size: 14px;
             outline: none;
             transition: border-color 0.3s, box-shadow 0.3s;
             font-weight: 400; 
             width: 100%;
-            max-width: 500px; 
+            max-width: 400px; 
         }
 
         input[type="email"]:focus,
@@ -269,21 +300,22 @@ if (isset($_SESSION['email_redefinir'])) {
         .btn-redefinir {
             background-color: var(--cor-botao);
             color: var(--cor-texto-principal); 
-            padding: 12px 20px;
+            padding: 10px 15px;
             border: 1px solid var(--cor-borda); 
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 18px;
-            font-weight: 700; 
-            margin-top: 10px;
+            font-size: 16px;
+            font-weight: 600; 
+            margin-top: 2px;
             transition: background-color 0.3s, border-color 0.3s, transform 0.2s;
             width: 100%;
-            max-width: 400px; 
+            max-width: 350px; 
+            margin-bottom: 0;
         }
 
         .btn-redefinir:focus {
             outline: none;
-            border: 3px solid var(--cor-borda-botao-foco);
+            border: 2px solid var(--cor-borda-botao-foco);
         }
 
         .btn-redefinir:hover {
@@ -291,17 +323,32 @@ if (isset($_SESSION['email_redefinir'])) {
             transform: translateY(-1px); 
         }
 
+        .btn-cancelar {
+            background-color: transparent;
+            color: var(--cor-texto-principal);
+            padding: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 10px;
+            text-decoration: underline;
+        }
+
+        .btn-cancelar:hover {
+            opacity: 0.7;
+        }
+
         @media (max-width: 768px) {
             .card-redefinir {
                 max-width: 90%; 
                 padding: 30px;
-                margin-top: 80px;
+                margin-top: 70px;
             }
             .titulo-principal {
                 top: 50px;
             }
             .titulo-principal h1 {
-                font-size: 30px;
+                font-size: 28px;
             }
             .botao-voltar-personalizado {
                 top: 10px;
@@ -313,7 +360,7 @@ if (isset($_SESSION['email_redefinir'])) {
 <body>
     
     <a href="login.php" class="botao-voltar-personalizado">
-        <img src="../../imgs/botaoVoltar.png" alt="Voltar" class="icone-voltar-img">
+        <img src="../src/imgs/botaoVoltar.png" alt="Voltar" class="icone-voltar-img">
     </a>
     
     <div class="container-fundo"></div>
@@ -333,9 +380,13 @@ if (isset($_SESSION['email_redefinir'])) {
             
             <form method="POST" action="">
                 <label for="email">Email cadastrado</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" required 
+                       value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
                 <button type="submit" name="verificar_email" class="btn-redefinir">Verificar Email</button>
             </form>
+            
+            <a href="login.php" class="btn-cancelar">Voltar para o login</a>
+            
         <?php else: ?>
             <!-- Etapa 2: Criar Nova Senha -->
             <p class="subtitulo">Tudo bem esquecer a senha às vezes, ainda bem que é possível criar outra!</p>
@@ -346,13 +397,15 @@ if (isset($_SESSION['email_redefinir'])) {
             
             <form method="POST" action="">
                 <label for="nova-senha">Crie uma senha nova</label>
-                <input type="password" id="nova-senha" name="nova-senha" required minlength="6">
+                <input type="password" id="nova-senha" name="nova-senha" required>
 
                 <label for="confirma-senha">Confirme a senha</label>
-                <input type="password" id="confirma-senha" name="confirma-senha" required minlength="6">
+                <input type="password" id="confirma-senha" name="confirma-senha" required>
 
                 <button type="submit" name="redefinir_senha" class="btn-redefinir">Redefinir</button>
             </form>
+            
+            <a href="?cancelar=1" class="btn-cancelar">Cancelar</a>
         <?php endif; ?>
     </div>
 </body>

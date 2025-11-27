@@ -1,369 +1,353 @@
 <?php
-session_start();
+// Iniciar sessão e verificar login
+require_once '../mapa/config.php';
+verificarLogin();
 
-// Configuração do banco de dados
-$host = 'localhost';
-$dbname = 'englishadventure';
-$username = 'root';
-$password = '';
+// Pegar nome do usuário da sessão
+$nomeAluno = $_SESSION['nome'] ?? $_SESSION['usuario_nome'] ?? 'Visitante';
+$usuario_id = $_SESSION['id'] ?? $_SESSION['usuario_id'] ?? 0;
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Erro na conexão: " . $e->getMessage());
-}
+// ⭐ DEFINIR: Esta é a FASE 3 (Jogo 2 - Floresta Escura)
+$numero_fase = 1; // Fase 1 do Jogo 2
+$jogo_numero = 2; // Jogo 2 (Floresta Escura)
+
+// ⭐ DEFINIR TIPO DA QUESTÃO
+$tipo_gramatica = 'negativa'; // 'afirmativa', 'interrogativa' ou 'negativa'
+$tipo_habilidade = 'choice'; // 'speaking', 'reading', 'listening' ou 'writing'
+$nome_atividade = 'jogo2_fase1'; // Identificador único
+
+// Buscar XP atual desta fase do banco (Jogo 2)
+$xp_atual_fase = obterXPFaseJogo2($pdo, $usuario_id, $numero_fase);
+$xp_total_jogo2 = obterXPTotalJogo2($pdo, $usuario_id);
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-  <title>English Adventure</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Irish+Grover&family=Itim&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="imgs/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Irish+Grover&family=Itim&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="img/logo.png" />
+
     <style>
         * {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             box-sizing: border-box;
             font-family: "Poppins", sans-serif;
         }
-
         body {
             background-image: url("imgs/floresta.png");
             background-repeat: no-repeat;
             background-size: cover;
             background-position: center;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 100vh; width: 100vw;
             overflow: hidden;
+            display: block; 
         }
-
         .topo {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 70px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 40px;
-            background: transparent;
-            font-family: 'Irish Grover', sans-serif;
-            color: white;
-            z-index: 10;
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 70px;
+            display: flex; justify-content: center; align-items: center;
+            padding: 0 40px; background: transparent;
+            font-family: "Irish Grover", sans-serif;
+            color: white; z-index: 10;
         }
-
         .titulo {
-            position: absolute;
-            left: 50%;
+            position: absolute; left: 50%;
             transform: translateX(-50%);
-            font-size: 28px;
-            color: #ffffffd8;
+            font-size: 28px; color: #ffffffd8;
             letter-spacing: 2px;
-            font-family: 'Irish Grover', sans-serif;
-            font-weight: 500;
+            font-family: "Irish Grover", sans-serif;
         }
-
         .sair {
-            position: absolute;
-            right: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: absolute; right: 40px;
+            display: flex; align-items: center; justify-content: center;
             text-decoration: none;
         }
-
         .sair img {
-            width: 28px;
-            height: 28px;
+            width: 28px; height: 28px;
             transition: 0.2s;
         }
+        .sair img:hover { transform: scale(1.1); }
 
-        .sair img:hover {
-            transform: scale(1.1);
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 5;
+            position: absolute; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); 
         }
 
-        .quiz-container {
-            width: 600px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.65);
-            padding: 30px;
+        .question-container {
+            width: 650px;
+            background: rgba(255,255,255,0.70);
+            padding: 40px;
             border-radius: 25px;
             backdrop-filter: blur(6px);
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 25px rgba(0,0,0,0.25);
             text-align: center;
-            margin-left: 48%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             z-index: 5;
+            transition: padding 0.3s ease;
+        }
+        
+        .question-container.answered {
+            padding-top: 25px; 
+            padding-bottom: 25px; 
         }
 
-        .title {
-            font-size: 25px;
-            margin-bottom: 20px;
-            padding: 10px;
+        .instruction {
+            font-size: 18px;
+            color: #444;
+            margin-bottom: 10px;
         }
 
-        .play-btn {
-            background: white;
-            border: none;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            font-size: 26px;
-            cursor: pointer;
-            margin-bottom: 25px;
-            transition: 0.2s;
-        }
-
-        .play-btn:hover {
-            transform: scale(1.08);
-            background: #f0f0f0;
+        .question-phrase {
+            font-size: 28px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 35px;
         }
 
         .options {
+            width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 20px;
         }
 
-        .option {
+        .option-btn {
+            width: 100%;
+            padding: 18px;
             border: none;
-            width: 500px;
-            align-self: center;
-            padding: 14px;
-            border-radius: 30px;
-            background: #3e2d22;
+            border-radius: 40px;
+            background: #3b2a20;
             color: white;
+            font-size: 18px;
             cursor: pointer;
-            font-size: 15px;
-            transition: 0.2s;
+            transition: 0.2s ease;
         }
 
-        .option:hover {
+        .option-btn:hover {
+            transform: scale(1.03);
+            background: #2c1e15;
+        }
+
+        .option-btn.selected-correct {
+            background: #4caf50; 
+        }
+
+        .option-btn.selected-correct:hover {
+            background: #388e3c; 
             transform: scale(1.03);
         }
 
+        .option-btn.selected-wrong {
+            background: #f44336; 
+        }
+
+        .option-btn.selected-wrong:hover {
+            background: #d32f2f; 
+            transform: scale(1.03);
+        }
+
+        .option-btn.show-correct {
+            background: #81c784; 
+            border: 3px solid #388e3c; 
+        }
+
+        .option-btn.show-correct:hover {
+            background: #81c784; 
+        }
+
         .correct {
-            background: #2e7d32 !important;
+            background: #3b2a20;
+        }
+        .correct:hover {
+            background: #2c1e15;
+        }
+        
+        #next-phase-btn-outside {
+            width: 280px; 
+            background: #3b2a20; 
+            padding: 10px; 
+            border-radius: 40px; 
+            margin-top: 25px; 
+            display: none; 
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        .wrong {
-            background: #9c2121 !important;
-        }
-
-        /* ÍCONES DEFINIDOS PARA 54px - LINHA DUPLICADA REMOVIDA */
-        .vocabulario-btn img,
-        .pocao-btn img {
-            width: 30px;
-            height: 36px;
-        }
-
-        .vocabulario-btn img {
-            margin-left: 70%;
-        }
-
-        .pocao-btn img {
-            margin-right: 60%;
+        #next-phase-btn-outside:hover {
+            background: #2c1e15; 
+            transform: scale(1.03); 
         }
 
         #feedback {
             margin-top: 15px;
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 20px; font-weight: bold;
         }
 
         .bottom-left {
-            position: absolute;
-            left: 0px;
-            bottom: 60px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            position: absolute; left: 0; bottom: 60px;
+            display: flex; align-items: center; gap: 10px;
         }
 
         .pocao {
-            position: absolute;
-            bottom: 60px;
-            right: 0px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 5px;
+            position: absolute; bottom: 60px; right: 0;
+            display: flex; flex-direction: column;
+            align-items: flex-end; gap: 5px;
         }
 
-        .vocabulario-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .vocabulario-btn, .pocao-btn {
+            display: flex; align-items: center; justify-content: center;
             gap: 8px;
-            background-color: rgba(255, 255, 255, 0.95);
+            background: rgba(255,255,255,0.95);
             border: none;
-            border-radius: 0 39px 39px 0;
-            padding: 20px 80px;
-            font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-            transition: 0.2s;
-            font-size: 16px;
-        }
-
-        .pocao-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background-color: rgba(255, 255, 255, 0.95);
-            border: none;
-            border-radius: 39px 0 0 39px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            transition: 0.2s; font-size: 16px; font-weight: 600;
             padding: 20px 50px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-            transition: 0.2s;
-            font-size: 16px;
         }
-
-        .vocabulario-btn:hover,
-        .pocao-btn:hover {
-            transform: scale(1.05);
+        .vocabulario-btn {
+            border-radius: 0 39px 39px 0; padding: 20px 80px;
         }
+        .pocao-btn {
+            border-radius: 39px 0 0 39px;
+        }
+        .vocabulario-btn:hover, .pocao-btn:hover { transform: scale(1.05); }
 
         .help {
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            margin-right: 30px;
+            color: white; font-size: 14px; font-weight: 500; margin-right: 30px;
         }
 
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.816);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .overlay.show {
-            display: flex;
-        }
-
-        .overlay-content {
-            max-width: 90%;
-            max-height: 90%;
-            animation: overlayAppear 0.3s ease-out;
-        }
-
-        .overlay-content img {
-            max-width: 100%;
-            max-height: 90vh;
-            object-fit: contain;
-        }
-
-        .disabled {
-            pointer-events: none;
-            opacity: 1;
-        }
-
-        .option.disabled:hover {
-            transform: none;
-            background: inherit;
-        }
-
+         /* XP BAR */
         .xp-container {
-            position: absolute;
-            left: 20px;
-            bottom: 140px;
-            width: 200px;
-            height: 40px;
+            position: absolute; left: 20px; bottom: 150px;
+            width: 200px; height: 60px; z-index: 10;
+        }
+        
+        .xp-info {
+            position: relative;
+            top: 20px;
+            width: 90px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-left: 5px;
+            margin-top: 5px;
+            color: white;
+            font-size: 12px;
+            font-weight: 200;
+            opacity: 0.9;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
             z-index: 10;
         }
-
-        .title1 {
-            font-size: 20px;
-            padding: 10px;
-        }
-
+        
         .xp-bar {
-            width: 100%;
-            height: 18px;
-            background: #f4e3c7;
-            border-radius: 10px;
+            width: 100%; 
+            height: 20px;
+            background: rgba(244, 227, 199, 0.4);
+            border-radius: 10px; 
             overflow: hidden;
+            border: 2px solid rgba(74, 43, 23, 0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            position: relative;
         }
-
+        
         .xp-fill {
-            height: 100%;
+            height: 100%; 
             width: 0%;
-            background: #4a2b17;
-            transition: width 0.4s ease;
+            background: linear-gradient(90deg, #8B4513 0%, #D2691E 50%, #CD853F 100%);
+            transition: width 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+            position: relative;
         }
-
-        .dragon {
+        
+        .xp-fill::after {
+            content: '';
             position: absolute;
-            width: 50px;
-            top: -40px;
+            top: 0;
             left: 0;
-            padding-left: 10px;
-            transition: left 0.4s ease;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%);
+            border-radius: 10px 10px 0 0;
         }
-
-        @keyframes overlayAppear {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+        
+        .dragon {
+            position: relative; 
+            width: 40px;
+            top: -62px;   
+            left: 50px;
+            transition: left 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+            z-index: 11;
         }
+        
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .vocabulario-btn img { margin-left: 60%; }
+        .pocao-btn img { margin-right: 36%; }
     </style>
 </head>
 
 <body>
+
     <header class="topo">
         <h1 class="titulo">A floresta escura de Huldra</h1>
-        <a href="#" class="sair">
-            <img src="imgs/sair.png" alt="Sair">
-        </a>
+        <a href="../mapa/mapa.php" class="sair"><img src="imgs/sair.png" alt="Sair" /></a>
     </header>
-    <div class="quiz-container">
-        <p class="title1">Responda</p>
-        <p class="title">Are you my best friend?</p>
-        <div class="options">
-            <button class="option" data-answer="wrong">A) He is</button>
-            <button class="option" data-answer="wrong">B) I am</button>
-            <button class="option" data-answer="correct">C) You are</button>
+
+    <div class="main-content">
+        <div class="question-container">
+            <p class="instruction">Transforme para a negativa</p>
+            <p class="question-phrase" id="questionPhrase">The dragon is brave.</p>
+
+            <div class="options">
+                <button class="option-btn">A) The dragon is brave.</button>
+                <button class="option-btn">B) The dragon aren't brave.</button>
+                <button class="option-btn correct">C) The dragon isn't brave.</button>
+            </div>
+
+            <p id="feedback"></p>
         </div>
-        <p id="feedback"></p>
+        
+        <button id="next-phase-btn-outside" onclick="avancar()">Avançar</button>
     </div>
+
     <div class="xp-container">
-        <img src="imgs/dragao.png" class="dragon" id="dragon">
+        <div class="xp-info">
+            <span>XP: <span id="xp-current">0/100</span></span>
+            <span id="xp-gained" style="color: #90EE90; display: none;">+1</span>
+        </div>
         <div class="xp-bar">
             <div class="xp-fill" id="xp-fill"></div>
         </div>
+        <img src="imgs/dragao.png" class="dragon" id="dragon" />
     </div>
+
     <div class="bottom-left">
         <button class="vocabulario-btn">
             <span>Dicionário</span>
             <img src="imgs/dicionario.png" alt="Vocabulário" />
         </button>
     </div>
+
     <div class="pocao">
         <span class="help">Precisa de ajuda?</span>
         <button class="pocao-btn">
@@ -371,57 +355,222 @@ try {
             <span class="btn-text">POÇÃO</span>
         </button>
     </div>
-    <div class="overlay" id="overlay">
-        <div class="overlay-content">
-            <img src="images/cartas/inicio.png" alt="Troll" />
-        </div>
-        <button onclick="document.getElementById('overlay').classList.remove('show')">Fechar</button>
-    </div>
-    <script>
-        const options = document.querySelectorAll(".option");
-        const feedback = document.getElementById("feedback");
-        const phasePoints = { 1: { correct: 1, wrong: -1 }, 2: { correct: 4, wrong: -4 }, 3: { correct: 5, wrong: -5 } };
-        let xp = parseInt(localStorage.getItem("xp")) || 0;
-        const maxXP = 100;
-        updateXPBar();
-        function updateXPBar() {
-            const fill = document.getElementById("xp-fill");
-            const dragon = document.getElementById("dragon");
-            let percent = Math.min((xp / maxXP) * 100, 100);
-            fill.style.width = percent + "%";
-            dragon.style.left = `calc(${percent}% - 20px)`;
-        }
-        function giveXP(phase, isCorrect) {
-            const points = phasePoints[phase];
-            if (isCorrect) { xp += points.correct; } else { xp += points.wrong; }
-            if (xp < 0) xp = 0;
-            localStorage.setItem("xp", xp);
-            updateXPBar();
-        }
-        options.forEach(btn => {
-            btn.addEventListener("click", () => {
-                if (feedback.textContent !== "") return;
-                options.forEach(o => { o.classList.add("disabled"); });
-                const isCorrect = btn.dataset.answer === "correct";
-                if (isCorrect) {
-                    btn.classList.add("correct");
-                    feedback.textContent = "✔ Resposta correta!";
-                    feedback.style.color = "#2e7d32";
-                    giveXP(1, true);
-                } else {
-                    btn.classList.add("wrong");
-                    const correctOption = document.querySelector('.option[data-answer="correct"]');
-                    correctOption.classList.add("correct");
-                    feedback.textContent = "✖ Resposta errada!";
-                    feedback.style.color = "#b71c1c";
-                    giveXP(1, false);
-                }
-                setTimeout(() => {
-                    window.location.href = "parte3.php";
-                }, 3000);
-            });
-        });
-    </script>
-</body>
 
+    <script>
+// ============================================
+// CONFIGURAÇÕES - JOGO 2 (Floresta Escura)
+// ============================================
+const NOME_ALUNO = "<?php echo $nomeAluno; ?>";
+const NUMERO_FASE = <?php echo $numero_fase; ?>;
+const JOGO_NUMERO = <?php echo $jogo_numero; ?>;
+const NOME_ATIVIDADE = "<?php echo $nome_atividade; ?>";
+const TIPO_GRAMATICA = "<?php echo $tipo_gramatica; ?>";
+const TIPO_HABILIDADE = "<?php echo $tipo_habilidade; ?>";
+const XP_ATUAL_FASE = <?php echo $xp_atual_fase; ?>;
+const XP_TOTAL_ACUMULADO = <?php echo $xp_total_jogo2; ?>;
+const XP_MAXIMO_TOTAL = 100;
+
+const phasePoints = { 
+    correct: 1,
+    wrong: -1
+};
+
+// ============================================
+// ELEMENTOS DOM
+// ============================================
+const questionContainer = document.querySelector(".question-container"); 
+const feedback = document.getElementById("feedback");
+const options = document.querySelectorAll(".option-btn");
+const nextBtn = document.getElementById("next-phase-btn-outside");
+const questionPhrase = document.getElementById("questionPhrase");
+const xpFill = document.getElementById("xp-fill");
+const dragon = document.getElementById("dragon");
+const xpCurrent = document.getElementById("xp-current");
+const xpGained = document.getElementById("xp-gained");
+
+// ============================================
+// VARIÁVEIS DE XP
+// ============================================
+let xpFaseAtual = XP_ATUAL_FASE;
+let xpTotalAcumulado = XP_TOTAL_ACUMULADO;
+let xpGanhoNaRodadaAtual = 0;
+let jaRespondeu = false;
+
+updateXPBar();
+
+console.log('🎮 Jogo 2 - Fase iniciada:', {
+    jogo: JOGO_NUMERO,
+    fase: NUMERO_FASE,
+    atividade: NOME_ATIVIDADE,
+    tipo_gramatica: TIPO_GRAMATICA,
+    tipo_habilidade: TIPO_HABILIDADE,
+    xpFaseAtual: xpFaseAtual,
+    xpTotalAcumulado: xpTotalAcumulado
+});
+
+// ============================================
+// FUNÇÕES DE XP
+// ============================================
+function updateXPBar() {
+    let percent = Math.min((xpTotalAcumulado / XP_MAXIMO_TOTAL) * 100, 100);
+    xpFill.style.width = percent + "%";
+    dragon.style.left = `calc(${percent}% - 27px)`;
+    xpCurrent.textContent = `${xpTotalAcumulado}/${XP_MAXIMO_TOTAL}`;
+    
+    console.log(`📊 Barra atualizada - Total: ${xpTotalAcumulado}/${XP_MAXIMO_TOTAL} (${percent.toFixed(1)}%)`);
+}
+
+function animateXPGain(amount) {
+    if (amount !== 0) {
+        xpGained.textContent = (amount > 0 ? '+' : '') + amount;
+        xpGained.style.color = amount > 0 ? '#90EE90' : '#FF6B6B';
+        xpGained.style.display = 'inline';
+    }
+    
+    dragon.classList.add('gaining-xp');
+    
+    setTimeout(() => {
+        xpGained.style.display = 'none';
+        dragon.classList.remove('gaining-xp');
+    }, 1500);
+}
+
+function giveXP(isCorrect) {
+    const xpChange = isCorrect ? phasePoints.correct : phasePoints.wrong;
+    
+    console.log('⭐ giveXP:', isCorrect ? 'CORRETO ✔' : 'ERRADO ✖', '| Mudança:', xpChange);
+    
+    xpFaseAtual += xpChange;
+    if (xpFaseAtual < 0) xpFaseAtual = 0;
+    if (xpFaseAtual > 10) xpFaseAtual = 10;
+    
+    xpTotalAcumulado += xpChange;
+    if (xpTotalAcumulado < 0) xpTotalAcumulado = 0;
+    if (xpTotalAcumulado > XP_MAXIMO_TOTAL) xpTotalAcumulado = XP_MAXIMO_TOTAL;
+    
+    xpGanhoNaRodadaAtual = xpChange;
+    
+    console.log(`📊 XP - Fase: ${xpFaseAtual}/10 | Total: ${xpTotalAcumulado}/${XP_MAXIMO_TOTAL}`);
+    
+    updateXPBar();
+    animateXPGain(xpChange);
+}
+
+// ============================================
+// SALVAR PROGRESSO DETALHADO
+// ============================================
+function salvarProgressoDetalhado(acertou) {
+    const formData = new FormData();
+    formData.append('usuario_id', <?php echo $usuario_id; ?>);
+    formData.append('fase', NUMERO_FASE);
+    formData.append('atividade', NOME_ATIVIDADE);
+    formData.append('tipo_gramatica', TIPO_GRAMATICA);
+    formData.append('tipo_habilidade', TIPO_HABILIDADE);
+    formData.append('acertou', acertou ? 1 : 0);
+
+    console.log('📤 Salvando progresso detalhado:', {
+        fase: NUMERO_FASE,
+        atividade: NOME_ATIVIDADE,
+        tipo_gramatica: TIPO_GRAMATICA,
+        tipo_habilidade: TIPO_HABILIDADE,
+        acertou: acertou
+    });
+
+    fetch('../mapa/salvar_progresso_detalhado.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('📥 Resposta progresso:', data);
+        
+        if (data.sucesso) {
+            console.log(`✅ Progresso salvo com sucesso!`);
+        } else {
+            console.error('❌ Erro:', data.mensagem);
+        }
+    })
+    .catch(error => console.error('❌ Erro na requisição:', error));
+}
+
+// ============================================
+// SALVAR XP NO BANCO (JOGO 2)
+// ============================================
+function salvarXPJogo2() {
+    if (xpGanhoNaRodadaAtual === 0) {
+        console.log('⚠️ Nenhum XP para salvar');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('nomeAluno', NOME_ALUNO);
+    formData.append('jogo', JOGO_NUMERO);
+    formData.append('fase', NUMERO_FASE);
+    formData.append('xp', xpGanhoNaRodadaAtual);
+
+    console.log('📤 Salvando XP Jogo 2:', {
+        aluno: NOME_ALUNO,
+        jogo: JOGO_NUMERO,
+        fase: NUMERO_FASE,
+        xp_mudanca: xpGanhoNaRodadaAtual
+    });
+
+    fetch('../mapa/salvar_xp_jogo2.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('📥 Resposta Jogo 2:', data);
+        
+        if (data.sucesso) {
+            console.log(`✅ Salvo! XP Fase ${NUMERO_FASE}: ${data.xp_fase}/10 | XP Total: ${data.xp_total}`);
+        } else {
+            console.error('❌ Erro:', data.mensagem);
+        }
+    })
+    .catch(error => console.error('❌ Erro na requisição:', error));
+    
+    xpGanhoNaRodadaAtual = 0;
+}
+
+// ============================================
+// LÓGICA DA QUESTÃO
+// ============================================
+options.forEach(btn => {
+    btn.addEventListener("click", () => {
+        if (jaRespondeu) return;
+        jaRespondeu = true;
+
+        const isCorrect = btn.classList.contains("correct");
+
+        if (isCorrect) {
+            feedback.textContent = "✔ Resposta correta!";
+            feedback.style.color = "#2e7d32";
+            btn.classList.add("selected-correct");
+            giveXP(true);
+        } else {
+            feedback.textContent = "✖ Resposta errada!";
+            feedback.style.color = "#b71c1c";
+            btn.classList.add("selected-wrong");
+            giveXP(false);
+            document.querySelector(".option-btn.correct")?.classList.add("show-correct");
+        }
+
+        // ⭐ SALVAR TUDO NO JOGO 2
+        salvarProgressoDetalhado(isCorrect);
+        salvarXPJogo2(); // ⭐ SALVA NA TABELA xp_jogo2
+
+        questionContainer.classList.add("answered");
+        nextBtn.style.display = "block";
+        options.forEach(b => b.disabled = true);
+    });
+});
+
+function avancar() {
+    window.location.href = 'fase2.php';
+}
+    </script>
+
+</body> 
 </html>

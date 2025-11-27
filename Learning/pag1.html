@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="icon" type="image/png" href="img/logo.png">
+
+     <title>English Adventure</title>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica:ital@1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English+SC&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        :root {
+            --profile-button-bg: #7C604F;
+            --header-bg: #000;
+            --header-text: #fff;
+
+            --cor-mesa-base: #c2a68a;
+            --cor-texto-dialogo: #fdf5e6;
+
+            --header-height-desktop: 60px;
+            --header-height-mobile: 50px;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        html {
+            transition: background-color 1.5s ease-in-out;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--cor-mesa-base);
+            transition: background-color 1.5s ease-in-out;
+        }
+
+        .fade-to-black {
+            background-color: black !important;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-image: url('img/mesa.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
+            transition: opacity 1.5s ease-in-out;
+            padding-top: var(--header-height-desktop);
+            box-sizing: border-box;
+        }
+
+        .hide-content {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .top-bar {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            height: var(--header-height-desktop);
+            width: 98%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .left-icon-container {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .back-arrow {
+            display: block;
+            width: 25px;
+            height: 25px;
+            background-image: url('img/botaoVoltar.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .back-arrow:hover {
+            opacity: 1;
+        }
+
+        .user-profile-button {
+            background-color: var(--profile-button-bg);
+            color: var(--header-text);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1em;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: opacity 0.2s;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .user-profile-button span {
+            display: block;
+            line-height: 1;
+        }
+
+        .role-bottom {
+            font-size: 1em;
+            font-weight: 700;
+        }
+
+        #magic-book {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 260px;
+            height: 390px;
+            background-image: url('img/livro.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 5;
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1.03);
+            }
+        }
+
+        #click-message {
+            position: absolute;
+            top: calc(45% + 185px);
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--cor-texto-dialogo);
+            background-color: rgba(30, 20, 15, 0.7);
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.0em;
+            font-weight: 400;
+            text-align: center;
+            white-space: nowrap;
+            z-index: 6;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        #viking-char {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 320px;
+            height: 320px;
+            background-image: url('../imgs/menina.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 11;
+        }
+
+        #dialogue-box {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            min-height: 120px;
+            background-color: rgba(30, 20, 15, 0.9);
+            color: var(--cor-texto-dialogo);
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.6em;
+            text-align: center;
+            line-height: 1.4;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <header class="top-bar">
+            <a class="left-icon-container">
+                <span class="back-arrow" onclick="exitGame()"></span>
+            </a>
+
+
+        </header>
+
+        <div id="magic-book" onclick="startAdventure()"></div>
+
+        <div id="click-message">clique no livro para iniciar</div>
+
+        <div id="viking-char"></div>
+
+        <div id="dialogue-box">
+            <p id="dialogue-text">Vamos primeiro descobrir um pouco sobre as Runas Mágicas</p>
+        </div>
+    </div>
+
+    <script>
+        function startAdventure() {
+            document.documentElement.classList.add('fade-to-black');
+            document.body.classList.add('fade-to-black');
+
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.classList.add('hide-content');
+
+            setTimeout(() => {
+                window.location.href = "explicando.html";
+            }, 1500);
+        }
+
+        function showPlayerProfile() {
+            alert('Perfil do Jogador Clicado!');
+        }
+
+        function exitGame() {
+            alert('Botão Sair/Voltar Clicado!');
+            window.location.href = "fase2.php";
+        }
+    </script>
+</body>
+
+</html>

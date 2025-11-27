@@ -6,29 +6,55 @@ verificarLogin();
 $usuario_id = $_SESSION['usuario_id'];
 $usuario_nome = $_SESSION['usuario_nome'] ?? $_SESSION['nome'] ?? 'Jogador';
 
-// Obter progresso de cada fase
-$fases = [];
-for ($i = 1; $i <= 4; $i++) {
-    $fases[$i] = [
-        'desbloqueada' => faseDesbloqueada($pdo, $usuario_id, $i),
-        'estrelas' => contarEstrelasFase($pdo, $usuario_id, $i)
-    ];
+// DEBUG: Verificar tabelas
+error_log("🔍 Verificando tabelas para usuário: $usuario_id ($usuario_nome)");
+
+// Verificar se a tabela fase_estrelas existe e tem dados
+try {
+    $table_check = $pdo->query("SHOW TABLES LIKE 'fase_estrelas'")->fetch();
+    if ($table_check) {
+        error_log("✅ Tabela fase_estrelas existe");
+        
+        // Verificar estrelas deste usuário
+        $stmt = $pdo->prepare("SELECT fase, estrelas FROM fase_estrelas WHERE usuario_id = ?");
+        $stmt->execute([$usuario_id]);
+        $estrelas_usuario = $stmt->fetchAll();
+        
+        error_log("📊 Estrelas do usuário:");
+        foreach ($estrelas_usuario as $estrela) {
+            error_log("   Fase {$estrela['fase']}: {$estrela['estrelas']} estrelas");
+        }
+    } else {
+        error_log("❌ Tabela fase_estrelas NÃO existe");
+    }
+} catch (Exception $e) {
+    error_log("❌ Erro ao verificar tabelas: " . $e->getMessage());
 }
 
 
+$fases = [];
+for ($i = 1; $i <= 4; $i++) {
+    $desbloqueada = faseDesbloqueada($pdo, $usuario_id, $i);
+    
+    $fases[$i] = [
+        'desbloqueada' => $desbloqueada,
+        'estrelas' => obterEstrelasPorXP($pdo, $usuario_id, $i, $desbloqueada) // ⭐ PASSA info de desbloqueio
+    ];
+    
+    error_log("🎮 Fase $i - Desbloqueada: " . ($fases[$i]['desbloqueada'] ? 'SIM' : 'NÃO') . ", Estrelas: " . $fases[$i]['estrelas']);
+}
 $paths = [
     1 => '../Learning/fase1.php',
-    2 => '../AFlorestaEscura/fase1.php',  // <<< coloque o caminho da fase 2 aqui
-    3 => '../EspelhosdeMidgard/fase1.php',
-    4 => '../AsRunasDeIdentidade/fase1.php'
+    2 => '../AsRunasDeIdentidade/fase1.php',
+    3 => '../AFlorestaEscura/fase1.php',
+    4 => '../EspelhosDeMidgard/fase1.php'
 ];
 
-// Cores das fases
 $coresFases = [
-    1 => '#194D6F', // Azul
-    2 => '#682B10', // Vermelho/Laranja
-    3 => '#8B2B28', // Rosa
-    4 => '#1D5529'  // Verde
+    1 => '#194D6F',
+    2 => '#682B10', 
+    3 => '#8B2B28',
+    4 => '#1D5529'
 ];
 ?>
 <!DOCTYPE html>
@@ -37,11 +63,12 @@ $coresFases = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comece a Jogar - Mapa de Aventura</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+      <link rel="icon" type="image/png" href="../src/imgs/logo.png">
+  <title>English Adventure</title>
 
     <style>
         * {
@@ -419,6 +446,34 @@ $coresFases = [
                 </span>
             </a>
         </header>
+
+<!-- DEBUG VISUAL -->
+<div style="position: fixed; top: 70px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; z-index: 10000; border-radius: 5px;">
+    <strong>DEBUG - Usuário: <?php echo $usuario_nome; ?> (ID: <?php echo $usuario_id; ?>)</strong><br>
+    
+    <?php 
+    $xp_fase2 = obterXPFase($pdo, $usuario_id, 2);
+    $xp_total = obterXPTotal($pdo, $usuario_id);
+    $estrelas_fase2 = obterEstrelasPorXP($pdo, $usuario_id, 2, true);
+    ?>
+    
+    <strong>XP NO BANCO:</strong><br>
+    - Fase 2 individual: <?php echo $xp_fase2; ?> XP<br>
+    - <strong>XP TOTAL: <?php echo $xp_total; ?> XP</strong> ⭐<br>
+    
+    <strong>ESTRELAS CALCULADAS:</strong><br>
+    - Usando XP TOTAL (<?php echo $xp_total; ?>) → <?php echo $estrelas_fase2; ?> estrelas<br>
+    
+    <strong>LÓGICA:</strong><br>
+    - 0-1 XP TOTAL = 0 estrelas<br>
+    - 2-4 XP TOTAL = 1 estrela ⭐<br>
+    - 5-7 XP TOTAL = 2 estrelas ⭐⭐<br>
+    - 8-10 XP TOTAL = 3 estrelas ⭐⭐⭐<br>
+    
+    <div style="color: lightgreen; margin-top: 5px;">
+        ✅ <strong>RESULTADO: Com 10 XP TOTAL → 3 ESTRELAS!</strong>
+    </div>
+</div>
 
         <main class="content-area">
             <div class="map-frame-reference">

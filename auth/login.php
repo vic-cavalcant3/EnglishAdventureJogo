@@ -53,10 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - English Adventure</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+      <link rel="icon" type="image/png" href="../src/imgs/logo.png">
+  <title>English Adventure</title>
 
     <style>
         :root {
@@ -326,7 +327,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="password" id="senha" name="senha" placeholder="" required>
                 </div>
                 
-                <a href="redefinir_senha.php" class="forgot-password-link">Esqueci a senha</a>
+                <a href="redefinirsenha.php" class="forgot-password-link">Esqueci a senha</a>
                 
                 <button type="submit" class="btn-enter">Entrar</button>
             </form>

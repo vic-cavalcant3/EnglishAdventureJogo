@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     
+  <title>English Adventure</title>
+  <link rel="icon" type="image/png" href="img/logo.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English+SC&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ======================================= */
+        /* VARIÁVEIS DO TEMA VIKING/LIVRO */
+        /* ======================================= */
+        :root {
+            --profile-button-bg: #7C604F; /* Marrom escuro para o botão do perfil */
+            --header-bg: #000; /* Fundo preto para o cabeçalho */
+            --header-text: #fff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            background-image: url(img/mesa.png); 
+            font-family: 'Poppins', sans-serif; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+
+        .game-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ----------------------------------- */
+        /* CABEÇALHO (TOP BAR) - NOVO ESTILO */
+        /* ----------------------------------- */
+        .top-bar {
+            background-color: var(--header-bg); 
+            color: var(--header-text);
+            height: 60px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+        }
+
+        /* Estilo do Título Centralizado */
+        .page-header-title {
+            font-family: 'IM Fell English SC', serif; 
+            font-size: 1.8em;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap; 
+        }
+        
+        /* Ícone de Voltar/Sair à esquerda - Configurado para Imagem */
+        .left-icon-container {
+            width: 40px; 
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Centraliza a seta na área de clique */
+            cursor: pointer;
+            z-index: 1; 
+        }
+
+        .back-arrow {
+            display: block; /* Essencial para que width e height funcionem */
+            width: 25px; /* Tamanho da seta/ícone */
+            height: 25px;
+            
+            /* Configuração para carregar a imagem */
+            color: transparent; 
+            font-size: 0; 
+            background-image: url('img/botaoVoltar.png'); /* Mude o caminho da imagem conforme necessário */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            line-height: 1;
+        }
+
+        .back-arrow:hover {
+            opacity: 1;
+        }
+
+        /* Perfil de Usuário à Direita (Botão Marrom) */
+        .user-profile-button {
+            background-color: var(--profile-button-bg); 
+            color: var(--header-text);
+            font-size: 0.9em;
+            padding: 8px 15px;
+            border-radius: 30px; /* Arredondado */
+            font-weight: 700;
+            text-decoration: none;
+            transition: opacity 0.2s;
+            line-height: 1.2;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1; 
+            cursor: pointer;
+        }
+        
+        .user-profile-button span {
+            display: block;
+            line-height: 1;
+        }
+        
+        .username-top {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 2px;
+        }
+        .role-bottom {
+            font-size: 1em;
+            font-weight: 700;
+        }
+        
+        .viking-button {
+             display: none; 
+        }
+        /* FIM DOS ESTILOS DO CABEÇALHO */
+
+        /* --- Estilos da Área de Páginas (mantidos) --- */
+        .pages-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 20px 120px;
+            position: relative;
+        }
+
+        .page-container {
+            position: relative;
+            width: min(90vw, 800px);
+            height: min(85vh, 600px);
+        }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #fcf6e7; 
+            border-radius: 8px;
+            box-shadow:
+                0 20px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.6),
+                inset 0 -1px 0 rgba(0,0,0,0.1),
+                inset 0 0 10px rgba(139, 69, 19, 0.15);
+            padding: clamp(30px, 5vw, 60px);
+            transform-origin: center;
+            transition: opacity 0.4s ease-in-out; 
+            opacity: 0;
+            transform: none; 
+            pointer-events: none;
+        }
+
+        .page.active {
+            opacity: 1;
+            transform: none; 
+            pointer-events: all;
+            z-index: 10;
+        }
+        
+        .page.exit-left, 
+        .page.exit-right { 
+            opacity: 0; 
+            transform: none;
+        }
+
+        /* --- Estilos do Conteúdo do Dicionário (mantidos) --- */
+        .page-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            color: #4a3628;
+            position: relative;
+        }
+
+        .page-title {
+            font-family: 'IM Fell English SC', serif; 
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            letter-spacing: 2px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: clamp(20px, 3vh, 40px);
+            color: #6a4a3a;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .dictionary-entries { 
+            flex: 1; 
+            overflow: hidden; 
+            padding: 20px; 
+            position: relative; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            border-radius: 5px; 
+            margin: 0 5%; 
+        }
+        .entry { 
+            position: absolute; 
+            width: 90%; 
+            opacity: 0; 
+            transition: opacity 1s ease-in-out; 
+            text-align: center; 
+            margin: 0; 
+            padding: 10px 0; 
+            border-bottom: none; 
+        }
+        .entry.active-entry { 
+            opacity: 1; 
+        }
+        .word { 
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem); 
+            font-weight: bold; 
+            color: #9b5a2b; 
+            margin-bottom: 8px; 
+        }
+        .definition { 
+            font-size: clamp(0.9rem, 2vw, 1.1rem); 
+            line-height: 1.6; 
+            color: #5a4233; 
+            margin-bottom: 6px; 
+        }
+        .example { 
+            font-size: clamp(0.85rem, 1.8vw, 1rem); 
+            font-style: italic; 
+            color: #7a5e4d; 
+            line-height: 1.5; 
+        }
+
+        /* ======================================= */
+        /* --- ESTILOS DO OVERLAY (MODAL FINAL) (mantidos) --- */
+        /* ======================================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); 
+            backdrop-filter: blur(10px); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200; 
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .final-modal {
+        /* ADICIONE AS PROPRIEDADES DA IMAGEM AQUI */
+            background-image: url('img/mapa.png'); 
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat;
+            width: 60%;
+            height: 60%;
+
+            /* PROPRIEDADES EXISTENTES ABAIXO */
+            border-radius: 8px;
+            
+            padding: clamp(30px, 5vw, 60px); 
+            width: min(90vw, 600px); 
+            max-height: 90vh;
+            position: relative;
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .final-modal::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            
+            
+            pointer-events: none;
+            box-sizing: border-box;
+            opacity: 0.9; 
+            border-radius: 8px;
+        }
+
+        .modal-content-wrapper {
+            background-color: transparent; 
+            padding: clamp(25px, 4vw, 35px); 
+            border-radius: 36px;
+            text-align: center;
+            width: 100%; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px; 
+        }
+        
+        .modal-text {
+            font-family: 'Poppins'; 
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            margin-bottom: 25px; 
+            padding: 0 10px;
+            color: #402D1C; 
+            text-align: center;
+            line-height: 1.5;
+        }
+        .modal-button {
+            background: #402D1C;
+            color: #fcf6e7; 
+            border: 2px solid #17110b; 
+            border-radius: 38px;
+            padding: 10px 30px; 
+            font-size: 18px; 
+            
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            text-decoration: none;
+            min-width: 200px; 
+            font-family: 'Poppins'; 
+        }
+        .modal-button:hover {
+            transform: translateY(-3px) scale(1.02); 
+            border-color: #B9794C; 
+        }
+        
+        /* NOVO ESTILO: LINK DE REVISÃO */
+        .modal-link-revisao {
+            font-family: 'Poppins'; 
+            font-size: 1rem;
+            color: #402D1C; 
+            margin-top: 20px; 
+            cursor: pointer;
+            text-decoration: none; 
+            border-bottom: 1px solid #402D1C; 
+            padding-bottom: 2px; 
+            transition: color 0.2s, border-bottom-color 0.2s;
+        }
+
+        .modal-link-revisao:hover {
+            color: #B9794C; 
+            border-bottom-color: #B9794C;
+        }
+        /* FIM DOS ESTILOS DO OVERLAY */
+
+
+        /* --- Estilos da Barra Inferior e Navegação (mantidos) --- */
+        .bottom-bar {
+            background-color: rgba(59, 50, 42, 0.9);
+            min-height: 100px; width: 100%; position: absolute; bottom: 0; left: 0; display: flex; justify-content: center; align-items: center; padding: 20px 30px; z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+        }
+        .navigation-container { width: 100%; max-width: 1200px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        #enchantment-text { color: white; font-size: clamp(0.9rem, 2vw, 1.1rem); text-align: center; line-height: 1.5; flex: 1; transition: opacity 0.3s ease-in-out; }
+        .nav-arrow { color: white; font-size: clamp(28px, 4vw, 36px); cursor: pointer; opacity: 0.7; transition: all 0.3s; user-select: none; min-width: 40px; text-align: center; filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5)); }
+        .nav-arrow:hover { opacity: 1; transform: scale(1.2); filter: drop-shadow(0 0 5px white); }
+        .nav-arrow.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; filter: none; }
+        
+        /* ... (media queries) ... */
+        @media (max-width: 768px) { 
+            .top-bar { height: 50px; padding: 0 15px; } 
+            .page-header-title { font-size: 1.4em; } 
+            .user-profile-button { padding: 6px 10px; font-size: 0.8em; }
+            .pages-area { padding: 70px 10px 110px; } 
+            .bottom-bar { min-height: 90px; padding: 15px 20px; } 
+        }
+        @media (max-width: 480px) { 
+            .navigation-container { gap: 10px; } 
+            .user-profile-button { padding: 6px 8px; font-size: 0.7em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header class="top-bar">
+            <a href="fase2.php" class="left-icon-container">
+                <span class="back-arrow"></span>
+            </a>
+
+
+        </header>
+
+        <div class="pages-area">
+            <div class="page-container" id="pageContainer"></div>
+        </div>
+
+        <footer class="bottom-bar">
+            <div class="navigation-container">
+                <span class="nav-arrow" id="prevArrow" onclick="previousPage()">←</span>
+                <p id="enchantment-text"></p>
+                <span class="nav-arrow" id="nextArrow" onclick="nextPage()">→</span>
+            </div>
+        </footer>
+    </div>
+    
+    <div class="modal-overlay" id="finalModalOverlay">
+        <div class="final-modal">
+            <div class="modal-content-wrapper">
+                <div class="modal-text">Chegou a hora de provar seu valor, guerreiro! A forja do conhecimento aguarda.</div>
+                
+                <button class="modal-button" onclick="iniciarTeste()">
+                    Iniciar Prova de Força
+                </button>
+                
+                <a href="#" class="modal-link-revisao" onclick="voltarParaRevisao()">Revisar novamente</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        const pages = [
+            // Páginas de Dicionário (Mantendo o design de livro)
+            {
+                title: "O Encantamento do TO BE",
+                entries: [
+                    { word: "AM ", definition: "Sou / Estou", example: "Exemplo: I am a brave Viking. → Eu sou um viking corajoso." },
+                    { word: "IS ", definition: "É / Está (Para He/She/It - Singular)", example: "Exemplo: She is strong. → Ela é forte. / The mead is cold. → O hidromel está gelado." },
+                    { word: "ARE ", definition: "Somos / Estão / São (Para You/We/They - Plural)", example: "Exemplo: We are partners. → Nós somos parceiros. / You are ready. → Você está pronto." }
+                ]
+            },
+            {
+                title: "A Runa da Negação ",
+                entries: [
+                    { word: "Regra", definition: "Para negar, basta adicionar 'NOT' imediatamente após a Runa do 'To Be' (Am, Is ou Are).", example: "Exemplo: I am not angry. → Eu não estou bravo. (Forma Curta: I'm not)" },
+                    { word: " IS:", definition: "She is not the best. → Ela não é a melhor.", example: "Exemplo: He is not a troll. → Ele não é um troll. (Formas Curtas: isn't, she's not)" },
+                    { word: " ARE:", definition: "They are not brave. → Eles não são corajosos.", example: "Exemplo: We are not ready. → Nós não estamos prontos. (Formas Curtas: aren't, we're not)" }
+                ]
+            },
+            {
+                title: "A Runa da Pergunta",
+                entries: [
+                    { word: "Regra", definition: "Para perguntar, a Runa do 'To Be' (Am, Is ou Are) deve ir para o início da frase, antes do sujeito.", example: "Exemplo Afirmativa: You are strong. → Pergunta: Are you strong?" },
+                    { word: "Is", definition: "Is he cold? → Ele está com frio?", example: "Exemplo: Is the shield heavy? → O escudo é pesado?" },
+                    { word: "Perguntas com am/are:", definition: "Am I right? → Eu estou certo?", example: "Exemplo: Are they Vikings? → Eles são vikings?" }
+                ]
+            }
+        ];
+
+        const totalDictionaryPages = pages.length; 
+        const footerMessages = [
+            "O Encantamento tem três formas mágicas, as Três Runas da Identidade! Diga-as comigo: Am, Is, Are!",
+            "Quando queremos negar, adicionamos a Runa da Negação 'NOT' logo após o 'To Be'. ",
+            "Se o 'To Be' é usado para fazer a pergunta, ele salta para a frente da frase!",
+            "Chegou a hora de forjar seu conhecimento em batalha!" // Mensagem final do rodapé (exibida no modal)
+        ];
+
+        let currentPageIndex = 0;
+        const pageContainer = document.getElementById('pageContainer');
+        const enchantmentText = document.getElementById('enchantment-text');
+        const prevArrow = document.getElementById('prevArrow');
+        const nextArrow = document.getElementById('nextArrow');
+        const finalModalOverlay = document.getElementById('finalModalOverlay'); 
+        let textCycleInterval;
+
+        // Função que será chamada ao clicar no botão 'Iniciar Prova de Força'
+        function iniciarTeste() {
+            // Fecha o modal (opcional, mas recomendado)
+            finalModalOverlay.classList.remove('show');
+            alert("Redirecionando para o teste de conhecimento!");
+            // Coloque o redirecionamento real aqui:
+            window.location.href = "fase3.php"; 
+        }
+        
+        // NOVA FUNÇÃO: Voltar para a última página do dicionário (revisão)
+        function voltarParaRevisao() {
+            finalModalOverlay.classList.remove('show');
+            // Retorna para a última página do dicionário (index totalDictionaryPages - 1)
+            showPage(totalDictionaryPages - 1); 
+        }
+
+
+        function startTextCycle(pageElement) {
+            clearInterval(textCycleInterval);
+            const entryElements = pageElement.querySelectorAll('.entry');
+            if (entryElements.length === 0) return;
+
+            let currentEntryIndex = 0;
+
+            const cycle = () => {
+                entryElements.forEach(el => el.classList.remove('active-entry'));
+                setTimeout(() => {
+                    entryElements[currentEntryIndex].classList.add('active-entry');
+                    currentEntryIndex = (currentEntryIndex + 1) % entryElements.length;
+                }, 100);
+            };
+
+            setTimeout(cycle, 100);
+            textCycleInterval = setInterval(cycle, 5000);
+        }
+
+        function createPages() {
+            pages.forEach((pageData, index) => {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'page'; 
+                pageDiv.id = `page-${index}`;
+
+                // Geração do conteúdo do dicionário
+                let entriesHTML = '';
+                pageData.entries.forEach(entry => {
+                    entriesHTML += `
+                        <div class="entry">
+                            <div class="word">${entry.word}</div>
+                            <div class="definition">${entry.definition}</div>
+                            <div class="example">${entry.example}</div>
+                        </div>
+                    `;
+                });
+
+                pageDiv.innerHTML = `
+                    <div class="page-content">
+                        <div class="page-title">${pageData.title}</div>
+                        <div class="dictionary-entries">
+                            ${entriesHTML}
+                        </div>
+                    </div>
+                `;
+
+                pageContainer.appendChild(pageDiv);
+            });
+
+            showPage(0);
+        }
+
+        function showPage(index) {
+            const allPages = document.querySelectorAll('.page');
+            clearInterval(textCycleInterval);
+
+            if (index === totalDictionaryPages) {
+                finalModalOverlay.classList.add('show');
+                enchantmentText.innerHTML = footerMessages[totalDictionaryPages]; 
+                updateArrows(true); 
+                return;
+            }
+
+            finalModalOverlay.classList.remove('show');
+
+            allPages.forEach((page, i) => {
+                // Remove as classes de animação e ativa de todas as páginas
+                page.classList.remove('exit-left', 'exit-right', 'active');
+                page.style.transitionDuration = '0s'; // Desliga a transição temporariamente para o reset
+            });
+            
+            // Força um repaint para garantir que a transição de 0s seja aplicada
+            void allPages[index]?.offsetWidth; 
+            
+            if (allPages[index]) {
+                allPages[index].style.transitionDuration = '0.4s'; // Define a duração da transição
+                allPages[index].classList.add('active');
+                startTextCycle(allPages[index]);
+            }
+
+            const messageIndex = index;
+            enchantmentText.style.opacity = 0;
+            setTimeout(() => {
+                enchantmentText.innerHTML = footerMessages[messageIndex];
+                enchantmentText.style.opacity = 1;
+            }, 300);
+
+            updateArrows(false);
+            currentPageIndex = index;
+        }
+
+        function nextPage() {
+            if (currentPageIndex < totalDictionaryPages) { 
+                const currentPageElement = document.getElementById(`page-${currentPageIndex}`);
+                
+                if(currentPageIndex < totalDictionaryPages) {
+                    // Adiciona a classe de saída para a página atual (apenas some)
+                    currentPageElement.classList.add('exit-left'); 
+                    currentPageElement.classList.remove('active');
+                }
+                
+                const nextIndex = currentPageIndex + 1;
+                // Espera o tempo de fade (400ms) para mostrar a próxima
+                setTimeout(() => showPage(nextIndex), 400); 
+            }
+        }
+
+        function previousPage() {
+            if (currentPageIndex > 0) {
+                if(currentPageIndex === totalDictionaryPages) {
+                    finalModalOverlay.classList.remove('show');
+                    showPage(totalDictionaryPages - 1); 
+                    return; 
+                }
+                
+                const currentPageElement = document.getElementById(`page-${currentPageIndex}`);
+                // Adiciona a classe de saída para a página atual (apenas some)
+                currentPageElement.classList.add('exit-right');
+                currentPageElement.classList.remove('active');
+
+                const prevIndex = currentPageIndex - 1;
+                // Espera o tempo de fade (400ms) para mostrar a anterior
+                setTimeout(() => showPage(prevIndex), 400);
+            }
+        }
+
+        function updateArrows(isModalActive = false) {
+            if (isModalActive) {
+                prevArrow.classList.remove('disabled'); 
+                nextArrow.classList.add('disabled'); 
+            } else {
+                prevArrow.classList.toggle('disabled', currentPageIndex === 0);
+                nextArrow.classList.toggle('disabled', false); 
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextPage();
+            if (e.key === 'ArrowLeft') previousPage();
+        });
+
+        createPages();
+    </script>
+</body>
+</html>
