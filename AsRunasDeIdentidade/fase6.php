@@ -483,12 +483,12 @@ $xp_atual_fase = obterXPFase($pdo, $usuario_id, $numero_fase);
         // CONFIGURAÇÕES - FASE X (ALTERE CONFORME A FASE)
         // ============================================
         const NOME_ALUNO = "<?php echo $nomeAluno; ?>";
-        const NUMERO_FASE = <? php echo $numero_fase; ?>;
+        const NUMERO_FASE = <?php echo $numero_fase; ?>;
         const NOME_ATIVIDADE = "<?php echo $nome_atividade; ?>";
         const TIPO_GRAMATICA = "<?php echo $tipo_gramatica; ?>"; // ⭐ NOVO
         const TIPO_HABILIDADE = "<?php echo $tipo_habilidade; ?>"; // ⭐ NOVO
-        const XP_ATUAL_FASE = <? php echo $xp_atual_fase; ?>;
-        const XP_TOTAL_ACUMULADO = <? php echo obterXPTotal($pdo, $usuario_id); ?>;
+        const XP_ATUAL_FASE = <?php echo $xp_atual_fase; ?>;
+        const XP_TOTAL_ACUMULADO = <?php echo obterXPTotal($pdo, $usuario_id); ?>;
         const XP_MAXIMO_TOTAL = 10;
 
         const phasePoints = {
@@ -528,7 +528,7 @@ $xp_atual_fase = obterXPFase($pdo, $usuario_id, $numero_fase);
 
         function salvarProgressoDetalhado(acertou) {
             const formData = new FormData();
-            formData.append('usuario_id', <? php echo $usuario_id; ?>);
+            formData.append('usuario_id', <?php echo $usuario_id; ?>);
             formData.append('fase', NUMERO_FASE);
             formData.append('atividade', NOME_ATIVIDADE);
             formData.append('tipo_gramatica', TIPO_GRAMATICA);
