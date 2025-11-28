@@ -1,10 +1,16 @@
 <?php
 require_once("conexao.php");
-require_once("../mapa/config.php");
+require_once("config.php");
 
 header('Content-Type: application/json; charset=utf-8');
 
-error_log("📥 salvar_xp.php chamado com: " . json_encode($_POST));
+// ✅ LOG DETALHADO
+error_log("=================================");
+error_log("📥 salvar_xp.php INICIADO");
+error_log("POST recebido: " . print_r($_POST, true));
+error_log("=================================");
+
+
 
 if (isset($_POST['nomeAluno'], $_POST['fase'], $_POST['xp'])) {
 

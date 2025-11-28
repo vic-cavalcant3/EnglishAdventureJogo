@@ -62,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-      <link rel="icon" type="image/png" href="../src/imgs/logo.png">
-  <title>English Adventure</title>
+    <link rel="icon" type="image/png" href="../src/imgs/logo.png">
+    <title>English Adventure</title>
 
     <style>
         @keyframes fadeIn {
@@ -197,6 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .input-group {
             margin-bottom: 25px;
+            position: relative;
         }
 
         .input-group label {
@@ -216,6 +217,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-sizing: border-box;
             outline: none;
             background-color: white; 
+            padding-right: 45px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 55px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+        
+        .password-toggle img {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        
+        .password-toggle:hover img {
+            opacity: 1;
         }
 
         .btn-criar {
@@ -302,6 +331,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="input-group">
                     <label for="senha">Crie uma senha</label>
                     <input type="password" id="senha" name="senha" placeholder="" required minlength="6">
+                    <button type="button" class="password-toggle" onclick="togglePassword('senha')">
+                        <img src="../src/imgs/fluent_eye-off-16-regular.png" alt="Mostrar senha" id="senha-icon">
+                    </button>
                 </div>
                 
                 <button type="submit" class="btn-criar">Criar</button>
@@ -310,5 +342,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="login.php" class="login-link">Fazer login</a>
         </div>
     </div>
+
+    <script>
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(inputId + '-icon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.src = '../src/imgs/iconoir_eye.png';
+                icon.alt = 'Ocultar senha';
+            } else {
+                input.type = 'password';
+                icon.src = '../src/imgs/fluent_eye-off-16-regular.png';
+                icon.alt = 'Mostrar senha';
+            }
+        }
+    </script>
 </body>
 </html>

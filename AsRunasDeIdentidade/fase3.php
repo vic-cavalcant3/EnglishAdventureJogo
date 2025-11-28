@@ -232,14 +232,17 @@ $xp_atual_fase = obterXPFase($pdo, $usuario_id, $numero_fase);
             border-radius: 10px 10px 0 0;
         }
         
-        .dragon {
+            .dragon {
+        
+            margin-left: 10px;
             position: relative; 
             width: 40px;
             top: -62px;   
-            left: 50px;
+            left: 60px;
             transition: left 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
             z-index: 11;
         }
+        
         
         
         /* Animação de pulso quando ganha XP */
@@ -658,7 +661,7 @@ if (recognition) {
 
         if (correct) {
             feedback.textContent = "✔ Pronúncia correta!";
-            feedback.style.color = "#2e7d32";
+            feedback.style.color = "#388e3c";
             giveXP(true);
             
             // ⭐ SALVAR TUDO NA ORDEM CORRETA
@@ -678,6 +681,12 @@ if (recognition) {
             // ⭐ SALVAR PROGRESSO MESMO QUANDO ERRAR
             salvarProgressoDetalhado(false);  // ✅ ADICIONAR
             salvarXPNoBanco();
+
+    
+            
+            // ⭐ MOSTRA BOTÃO AVANÇAR MESMO QUANDO ERRA
+            nextBtn.style.display = "block";
+            console.log("❌ Pronúncia incorreta - avançando para próxima fase");
         }
 
         pronunciationLabel.textContent = "Escutar pronúncia";

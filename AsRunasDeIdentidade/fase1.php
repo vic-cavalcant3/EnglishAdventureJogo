@@ -286,10 +286,11 @@ $xp_atual_fase = obterXPFase($pdo, $usuario_id, $numero_fase);
         }
         
         .dragon {
+            margin-left: 10px;
             position: relative; 
             width: 40px;
             top: -62px;   
-            left: 50px;
+            left: 60px;
             transition: left 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
             z-index: 11;
         }
@@ -330,9 +331,8 @@ $xp_atual_fase = obterXPFase($pdo, $usuario_id, $numero_fase);
 
     <div class="xp-container">
         <div class="xp-info">
-           
             <span id="xp-gained" style="color: #90EE90; display: none;">+1</span>
-             <span>XP: <span id="xp-current">0/10</span></span>
+            <span>XP: <span id="xp-current">0/10</span></span>
         </div>
         <div class="xp-bar">
             <div class="xp-fill" id="xp-fill"></div>
@@ -362,8 +362,8 @@ $xp_atual_fase = obterXPFase($pdo, $usuario_id, $numero_fase);
 const NOME_ALUNO = "<?php echo $nomeAluno; ?>";
 const NUMERO_FASE = <?php echo $numero_fase; ?>;
 const NOME_ATIVIDADE = "<?php echo $nome_atividade; ?>";
-const TIPO_GRAMATICA = "<?php echo $tipo_gramatica; ?>"; // ⭐ NOVO
-const TIPO_HABILIDADE = "<?php echo $tipo_habilidade; ?>"; // ⭐ NOVO
+const TIPO_GRAMATICA = "<?php echo $tipo_gramatica; ?>";
+const TIPO_HABILIDADE = "<?php echo $tipo_habilidade; ?>";
 const XP_ATUAL_FASE = <?php echo $xp_atual_fase; ?>;
 const XP_TOTAL_ACUMULADO = <?php echo obterXPTotal($pdo, $usuario_id); ?>;
 const XP_MAXIMO_TOTAL = 10;
@@ -454,7 +454,17 @@ function giveXP(isCorrect) {
 }
 
 // ============================================
-// SALVAR PROGRESSO DETALHADO (⭐ NOVO)
+// CALCULAR ESTRELAS BASEADO NO XP
+// ============================================
+function calcularEstrelas() {
+    if (xpFaseAtual >= 9) return 3;      // 9-10 XP = 3 estrelas
+    if (xpFaseAtual >= 6) return 2;      // 6-8 XP = 2 estrelas
+    if (xpFaseAtual >= 3) return 1;      // 3-5 XP = 1 estrela
+    return 0;                             // 0-2 XP = sem estrelas
+}
+
+// ============================================
+// SALVAR PROGRESSO DETALHADO
 // ============================================
 function salvarProgressoDetalhado(acertou) {
     const formData = new FormData();
@@ -516,7 +526,7 @@ function salvarXPNoBanco() {
     })
     .then(response => response.json())
     .then(data => {
-        console.log('📥 Resposta:', data);
+        console.log('📥 Resposta XP:', data);
         
         if (data.sucesso) {
             console.log(`✅ Salvo! XP Fase ${NUMERO_FASE}: ${data.xp_fase}/10 | XP Total: ${data.xp_total}`);
@@ -527,6 +537,38 @@ function salvarXPNoBanco() {
     .catch(error => console.error('❌ Erro na requisição:', error));
     
     xpGanhoNaRodadaAtual = 0;
+}
+
+// ============================================
+// SALVAR ESTRELAS NO BANCO
+// ============================================
+function salvarEstrelasFase(estrelas) {
+    const formData = new FormData();
+    formData.append('nomeAluno', NOME_ALUNO);
+    formData.append('fase', NUMERO_FASE);
+    formData.append('estrelas', estrelas);
+
+    console.log('🌟 Salvando estrelas:', {
+        nomeAluno: NOME_ALUNO,
+        fase: NUMERO_FASE,
+        estrelas: estrelas
+    });
+
+    fetch('../mapa/salvar_estrelas_fase.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('🌟 Resposta estrelas:', data);
+        
+        if (data.sucesso) {
+            console.log(`✅ Estrelas salvas! Fase ${NUMERO_FASE}: ${estrelas} estrelas`);
+        } else {
+            console.error('❌ Erro ao salvar estrelas:', data.mensagem);
+        }
+    })
+    .catch(error => console.error('❌ Erro ao salvar estrelas:', error));
 }
 
 // ============================================
@@ -560,9 +602,12 @@ options.forEach(btn => {
             document.querySelector(".option-btn.correct")?.classList.add("show-correct");
         }
 
-        // ⭐ SALVAR TUDO
-        salvarProgressoDetalhado(isCorrect); // NOVO
+        // ⭐ SALVAR TUDO NA ORDEM CORRETA
+        salvarProgressoDetalhado(isCorrect);
         salvarXPNoBanco();
+        
+        const estrelas = calcularEstrelas();
+        salvarEstrelasFase(estrelas);
 
         questionContainer.classList.add("answered");
         nextBtn.style.display = "block";

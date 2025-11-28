@@ -2,11 +2,6 @@
 require_once("conexao.php"); 
 session_start();
 
-// Verificar se o usuário está logado
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
-    exit();
-}
 
 // Buscar dados do usuário no banco de dados
 $usuario_id = $_SESSION['usuario_id'];
@@ -16,10 +11,6 @@ $stmt->execute([$usuario_id]);
 $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Se não encontrar o usuário, redireciona para login
-if (!$usuario) {
-    header("Location: login.php");
-    exit();
-}
 
 $nome_usuario = $usuario['nome'];
 ?>
@@ -144,8 +135,8 @@ $nome_usuario = $usuario['nome'];
 
       .sair img {
         margin-bottom: 10px;
-        width: 150%;
-        height: 150%;
+        width: 90%;
+        height: 50%;
         display: block;
         filter: none; /* mantém cor original */
         transition: transform 0.2s;
@@ -195,6 +186,7 @@ $nome_usuario = $usuario['nome'];
   <img class="boneca" src="img/girl (1).png" alt="Boneca Viking">
 
   <header class="topo">
+    
     <a href="../mapa/fases.php" class="sair">
       <img src="img/voltar.png" alt="Sair">
     </a>

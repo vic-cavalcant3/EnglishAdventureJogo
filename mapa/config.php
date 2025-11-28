@@ -674,9 +674,12 @@ function obterEstrelasPorXP($pdo, $usuario_id, $numero_fase, $fase_desbloqueada 
 }
 
 // ============================================
-// FUNÇÕES PARA JOGO 2 (A Floresta Escura - Fase 3)
+// FUNÇÕES BASE PARA JOGO 2 (adicione ANTES das funções adicionais)
 // ============================================
 
+/**
+ * Registra XP para o Jogo 2
+ */
 /**
  * Registra XP para o Jogo 2
  */
@@ -692,34 +695,45 @@ function registrarXPJogo2($pdo, $usuario_id, $fase, $xp_ganho) {
     $stmt_nome->execute([$usuario_id]);
     $usuario = $stmt_nome->fetch();
     
-    if (!$usuario) return false;
+    if (!$usuario) {
+        error_log("❌ Usuário não encontrado: ID $usuario_id");
+        return false;
+    }
     
     $nomeAluno = $usuario['nome'];
     $xp_maximo_por_fase = 10;
     $xp_maximo_total = 100;
 
     try {
-        // Criar linha se não existir
-        $colunas = "usuario_id, nomeAluno";
-        $valores = "?, ?";
-        $params_init = [$usuario_id, $nomeAluno];
+        // ⭐ VERIFICAR SE JÁ EXISTE LINHA PARA ESTE USUÁRIO
+        $stmt_check = $pdo->prepare("SELECT id FROM xp_jogo2 WHERE usuario_id = ?");
+        $stmt_check->execute([$usuario_id]);
+        $existe = $stmt_check->fetch();
         
-        // Adicionar colunas para todas as 10 fases
-        for ($i = 1; $i <= 10; $i++) {
-            $colunas .= ", fase" . $i . "_xp";
+        if (!$existe) {
+            // ✅ CRIAR LINHA INICIAL (apenas se não existir)
+            $colunas = "usuario_id, nomeAluno";
+            $valores = "?, ?";
+            $params_init = [$usuario_id, $nomeAluno];
+            
+            // Adicionar colunas para todas as 10 fases
+            for ($i = 1; $i <= 10; $i++) {
+                $colunas .= ", fase" . $i . "_xp";
+                $valores .= ", 0";
+            }
+            $colunas .= ", total_xp";
             $valores .= ", 0";
+            
+            $stmt_init = $pdo->prepare("
+                INSERT INTO xp_jogo2 ($colunas, dataRegistro)
+                VALUES ($valores, NOW())
+            ");
+            $stmt_init->execute($params_init);
+            
+            error_log("✅ Linha criada para usuário $nomeAluno (ID: $usuario_id)");
         }
-        $colunas .= ", total_xp";
-        $valores .= ", 0";
         
-        $stmt_init = $pdo->prepare("
-            INSERT INTO xp_jogo2 ($colunas, dataRegistro)
-            VALUES ($valores, NOW())
-            ON DUPLICATE KEY UPDATE dataRegistro = NOW()
-        ");
-        $stmt_init->execute($params_init);
-        
-        // Atualizar XP da fase específica
+        // ⭐ ATUALIZAR XP DA FASE ESPECÍFICA
         $coluna_fase = "fase" . $fase . "_xp";
         $stmt_update = $pdo->prepare("
             UPDATE xp_jogo2 
@@ -729,9 +743,19 @@ function registrarXPJogo2($pdo, $usuario_id, $fase, $xp_ganho) {
             WHERE usuario_id = ?
         ");
         
-        $stmt_update->execute([$xp_maximo_por_fase, $xp_ganho, $xp_maximo_total, $xp_ganho, $usuario_id]);
+        $stmt_update->execute([
+            $xp_maximo_por_fase, 
+            $xp_ganho, 
+            $xp_maximo_total, 
+            $xp_ganho, 
+            $usuario_id
+        ]);
         
-        error_log("✅ XP Jogo 2 registrado - Fase: $fase | Ganho: $xp_ganho");
+        // Log de sucesso
+        $xp_atual = obterXPFaseJogo2($pdo, $usuario_id, $fase);
+        $xp_total = obterXPTotalJogo2($pdo, $usuario_id);
+        error_log("✅ XP Jogo 2 - Usuário: $nomeAluno | Fase: $fase | Ganho: $xp_ganho | Fase: $xp_atual/10 | Total: $xp_total/100");
+        
         return true;
         
     } catch (PDOException $e) {
@@ -787,5 +811,117 @@ function obterEstrelasJogo2($pdo, $usuario_id, $fase_desbloqueada = false) {
     return 0;
 }
 
+// ============================================
+// FUNÇÕES ADICIONAIS PARA JOGO 2
+// ============================================
+
+/**
+ * Registra XP completo do Jogo 2 (registra XP e atualiza tabela jogo)
+ */
+function registrarXPCompleto2($pdo, $usuario_id, $fase, $xp) {
+    // Primeiro registra o XP na tabela xp_jogo2
+    $sucesso = registrarXPJogo2($pdo, $usuario_id, $fase, $xp);
+    
+    if ($sucesso) {
+        // Depois atualiza o total na tabela jogo (se necessário)
+        atualizarXPJogo2($pdo, $usuario_id);
+    }
+    
+    return $sucesso;
+}
+
+/**
+ * Atualiza o XP total do Jogo 2 na tabela jogo
+ */
+function atualizarXPJogo2($pdo, $usuario_id) {
+    $stmt = $pdo->prepare("SELECT nome FROM usuarios WHERE id = ?");
+    $stmt->execute([$usuario_id]);
+    $usuario = $stmt->fetch();
+    
+    if (!$usuario) {
+        return false;
+    }
+    
+    $xp_total = obterXPTotalJogo2($pdo, $usuario_id);
+    
+    // Você pode criar uma coluna xp_jogo2 na tabela jogo se quiser rastrear separadamente
+    // Por enquanto, vamos apenas retornar true
+    return true;
+}
+
+/**
+ * Obtém XP total do Jogo 2 (alias para compatibilidade)
+ */
+function obterXPTotal2($pdo, $usuario_id) {
+    return obterXPTotalJogo2($pdo, $usuario_id);
+}
+
+/**
+ * Obtém XP de uma fase específica do Jogo 2 (alias para compatibilidade)
+ */
+function obterXPFase2($pdo, $usuario_id, $fase) {
+    return obterXPFaseJogo2($pdo, $usuario_id, $fase);
+}
+
+/**
+ * Obtém o XP inicial para uma fase do Jogo 2 (soma das fases anteriores)
+ */
+function obterXPInicialFase2($pdo, $usuario_id, $fase) {
+    if ($fase <= 1) {
+        return 0;
+    }
+    
+    try {
+        $sql = "SELECT (";
+        for ($i = 1; $i < $fase; $i++) {
+            if ($i > 1) $sql .= " + ";
+            $sql .= "COALESCE(fase" . $i . "_xp, 0)";
+        }
+        $sql .= ") as xp_anterior FROM xp_jogo2 WHERE usuario_id = ?";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$usuario_id]);
+        $result = $stmt->fetch();
+        return $result ? intval($result['xp_anterior']) : 0;
+    } catch (PDOException $e) {
+        error_log("Erro ao obter XP inicial da fase Jogo 2: " . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Obtém progresso de todas as fases do Jogo 2
+ */
+function obterProgressoFases2($pdo, $usuario_id) {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT 
+                fase1_xp, fase2_xp, fase3_xp, fase4_xp, fase5_xp,
+                fase6_xp, fase7_xp, fase8_xp, fase9_xp, fase10_xp,
+                total_xp
+            FROM xp_jogo2 
+            WHERE usuario_id = ?
+        ");
+        $stmt->execute([$usuario_id]);
+        $result = $stmt->fetch();
+        
+        if (!$result) {
+            return array_fill(1, 10, ['xp_obtido' => 0, 'xp_total_fase' => 10]);
+        }
+        
+        $progresso = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $progresso[$i] = [
+                'xp_obtido' => $result["fase{$i}_xp"] ?? 0,
+                'xp_total_fase' => 10
+            ];
+        }
+        
+        return $progresso;
+    } catch (PDOException $e) {
+        error_log("Erro ao obter progresso das fases Jogo 2: " . $e->getMessage());
+        return array_fill(1, 10, ['xp_obtido' => 0, 'xp_total_fase' => 10]);
+    }
+}
 
 ?>

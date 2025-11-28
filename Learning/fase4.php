@@ -182,8 +182,8 @@ $nomeAluno = $usuario['nome'] ?? 'Desconhecido';
       <h2>Verifique a frase</h2>
       <p class="frase">Am I a viking?</p>
       <div class="botoes-verificacao">
-        <button class="btn-verde">It's right</button>
-        <button class="btn-vermelho">It's wrong</button>
+        <button class="btn-vermelho">It's right</button>
+        <button class="btn-verde">It's wrong</button>
       </div>
       <a href="fase5.php" class="btn sim">Próximo</a>
     </div>
