@@ -17,9 +17,8 @@ $tipo_habilidade = 'listening'; // 'speaking', 'reading', 'listening' ou 'writin
 $nome_atividade = 'jogo4_fase1'; // Identificador único
 
 // ✅ BUSCAR XP ATUAL DESTA FASE DO JOGO 3
-$xp_atual_fase = obterXPFase3($pdo, $usuario_id, $numero_fase);
-$xp_total_jogo3 = obterXPTotal3($pdo, $usuario_id);
-
+$xp_atual_fase = obterXPFase3($pdo, $usuario_id, $numero_fase); // Use obterXPFase2
+$xp_total_jogo3 = obterXPTotal3($pdo, $usuario_id); // Use obterXPTotal2
 // Debug (opcional - remova depois)
 error_log("🎮 Jogo 3 - Fase $numero_fase | XP Fase: $xp_atual_fase | XP Total: $xp_total_jogo3");
 
@@ -186,7 +185,7 @@ error_log("🎮 Jogo 3 - Fase $numero_fase | XP Fase: $xp_atual_fase | XP Total:
         }
 
         .option-btn.selected-correct {
-            background: #4caf50; 
+            background: #388e3c; 
         }
 
         .option-btn.selected-correct:hover {
@@ -204,7 +203,7 @@ error_log("🎮 Jogo 3 - Fase $numero_fase | XP Fase: $xp_atual_fase | XP Total:
         }
 
         .option-btn.show-correct {
-            background: #81c784; 
+            background: #388e3c; 
             border: 3px solid #388e3c; 
         }
 
@@ -382,7 +381,7 @@ error_log("🎮 Jogo 3 - Fase $numero_fase | XP Fase: $xp_atual_fase | XP Total:
 
     <div class="xp-container">
         <div class="xp-info">
-            <span>XP: <span id="xp-current">0/40</span></span>
+            <span>XP: <span id="xp-current">0/50</span></span>
             <span id="xp-gained" style="color: #90EE90; display: none;">+1</span>
         </div>
         <div class="xp-bar">
@@ -418,7 +417,7 @@ const TIPO_GRAMATICA = "<?php echo $tipo_gramatica; ?>";
 const TIPO_HABILIDADE = "<?php echo $tipo_habilidade; ?>";
 const XP_ATUAL_FASE = <?php echo $xp_atual_fase; ?>;
 const XP_TOTAL_ACUMULADO = <?php echo $xp_total_jogo3; ?>;
-const XP_MAXIMO_TOTAL = 40; // 8 fases × 40 XP cada = 320 XP total
+const XP_MAXIMO_TOTAL = 50; // 8 fases × 40 XP cada = 320 XP total
 
 const phasePoints = { 
     correct: 5,
@@ -494,10 +493,10 @@ function giveXP(isCorrect) {
     
     console.log('⭐ giveXP:', isCorrect ? 'CORRETO ✔' : 'ERRADO ✖', '| Mudança:', xpChange);
     
-    // ✅ CORREÇÃO: Jogo 4 tem 40 XP por fase, não 10
+    // ✅ CORREÇÃO: Jogo 3 tem 50 XP máximo
     xpFaseAtual += xpChange;
     if (xpFaseAtual < 0) xpFaseAtual = 0;
-    if (xpFaseAtual > 40) xpFaseAtual = 40; // MÁXIMO 40 XP POR FASE
+    if (xpFaseAtual > 50) xpFaseAtual = 50; // MÁXIMO 50 XP POR FASE
     
     xpTotalAcumulado += xpChange;
     if (xpTotalAcumulado < 0) xpTotalAcumulado = 0;
@@ -505,12 +504,11 @@ function giveXP(isCorrect) {
     
     xpGanhoNaRodadaAtual = xpChange;
     
-    console.log(`📊 XP - Fase: ${xpFaseAtual}/40 | Total: ${xpTotalAcumulado}/${XP_MAXIMO_TOTAL}`);
+    console.log(`📊 XP - Fase: ${xpFaseAtual}/50 | Total: ${xpTotalAcumulado}/${XP_MAXIMO_TOTAL}`);
     
     updateXPBar();
     animateXPGain(xpChange);
 }
-
 // ============================================
 // SALVAR PROGRESSO DETALHADO
 // ============================================
@@ -559,13 +557,11 @@ function salvarXPJogo3() {
 
     const formData = new FormData();
     formData.append('nomeAluno', NOME_ALUNO);
-    formData.append('jogo', JOGO_NUMERO);
     formData.append('fase', NUMERO_FASE);
     formData.append('xp', xpGanhoNaRodadaAtual);
 
     console.log('📤 Salvando XP Jogo 3:', {
         aluno: NOME_ALUNO,
-        jogo: JOGO_NUMERO,
         fase: NUMERO_FASE,
         xp_mudanca: xpGanhoNaRodadaAtual
     });
@@ -580,7 +576,7 @@ function salvarXPJogo3() {
         console.log('📥 Resposta Jogo 3:', data);
         
         if (data.sucesso) {
-            console.log(`✅ Salvo! XP Fase ${NUMERO_FASE}: ${data.xp_fase}/40 | XP Total: ${data.xp_total} | Estrelas: ${data.estrelas}`);
+            console.log(`✅ Salvo! XP Fase ${NUMERO_FASE}: ${data.xp_fase}/50 | XP Total: ${data.xp_total} | Estrelas: ${data.estrelas}`);
         } else {
             console.error('❌ Erro:', data.mensagem);
         }

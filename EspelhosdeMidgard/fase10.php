@@ -8,8 +8,8 @@ $nomeAluno = $_SESSION['nome'] ?? $_SESSION['usuario_nome'] ?? 'Visitante';
 $usuario_id = $_SESSION['id'] ?? $_SESSION['usuario_id'] ?? 0;
 
 // ⭐ DEFINIR: Esta é a FASE 4 do Jogo 4 (Espelhos de Midgard)
-$numero_fase = 4;
-$jogo_numero = 10;
+$numero_fase = 10;
+$jogo_numero = 4;
 
 // ⭐ DEFINIR TIPO DA QUESTÃO
 $tipo_gramatica = 'interrogativa';
@@ -17,11 +17,9 @@ $tipo_habilidade = 'writing'; // Reescrita de frase é writing
 $nome_atividade = 'jogo4_fase10';
 
 // ✅ BUSCAR XP ATUAL DESTA FASE DO JOGO 4
-$xp_atual_fase = obterXPFase3($pdo, $usuario_id, $numero_fase);
-$xp_total_jogo4 = obterXPTotal3($pdo, $usuario_id);
+$xp_atual_fase = obterXPFase3($pdo, $usuario_id, $numero_fase); // Use obterXPFase2
+$xp_total_jogo3 = obterXPTotal3($pdo, $usuario_id); // Use obterXPTotal2
 
-// Debug (opcional - remova depois)
-error_log("🎮 Jogo 4 - Fase $numero_fase | XP Fase: $xp_atual_fase | XP Total: $xp_total_jogo4");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -329,7 +327,7 @@ error_log("🎮 Jogo 4 - Fase $numero_fase | XP Fase: $xp_atual_fase | XP Total:
 
     <div class="xp-container">
         <div class="xp-info">
-            <span>XP: <span id="xp-current">0/40</span></span>
+            <span>XP: <span id="xp-current">0/50</span></span>
             <span id="xp-gained" style="color: #90EE90; display: none;">+5</span>
         </div>
         <div class="xp-bar">
@@ -363,13 +361,13 @@ error_log("🎮 Jogo 4 - Fase $numero_fase | XP Fase: $xp_atual_fase | XP Total:
 // ============================================
 const NOME_ALUNO = "<?php echo $nomeAluno; ?>";
 const NUMERO_FASE = <?php echo $numero_fase; ?>;
-const JOGO_NUMERO = <?php echo $jogo_numero; ?>;
+const JOGO_NUMERO = <?php echo $jogo_numero; ?>; // 4
 const NOME_ATIVIDADE = "<?php echo $nome_atividade; ?>";
 const TIPO_GRAMATICA = "<?php echo $tipo_gramatica; ?>";
 const TIPO_HABILIDADE = "<?php echo $tipo_habilidade; ?>";
 const XP_ATUAL_FASE = <?php echo $xp_atual_fase; ?>;
-const XP_TOTAL_ACUMULADO = <?php echo $xp_total_jogo4; ?>;
-const XP_MAXIMO_TOTAL = 40;
+const XP_TOTAL_ACUMULADO = <?php echo $xp_total_jogo3; ?>;
+const XP_MAXIMO_TOTAL = 50; // 8 fases × 40 XP cada = 320 XP total
 
 const phasePoints = { 
     correct: 5,
@@ -442,9 +440,10 @@ function giveXP(isCorrect) {
     
     console.log('⭐ giveXP:', isCorrect ? 'CORRETO ✔' : 'ERRADO ✖', '| Mudança:', xpChange);
     
+    // ✅ CORREÇÃO: Jogo 3 tem 50 XP máximo
     xpFaseAtual += xpChange;
     if (xpFaseAtual < 0) xpFaseAtual = 0;
-    if (xpFaseAtual > 40) xpFaseAtual = 40;
+    if (xpFaseAtual > 50) xpFaseAtual = 50; // MÁXIMO 50 XP POR FASE
     
     xpTotalAcumulado += xpChange;
     if (xpTotalAcumulado < 0) xpTotalAcumulado = 0;
@@ -452,7 +451,7 @@ function giveXP(isCorrect) {
     
     xpGanhoNaRodadaAtual = xpChange;
     
-    console.log(`📊 XP - Fase: ${xpFaseAtual}/40 | Total: ${xpTotalAcumulado}/${XP_MAXIMO_TOTAL}`);
+    console.log(`📊 XP - Fase: ${xpFaseAtual}/50 | Total: ${xpTotalAcumulado}/${XP_MAXIMO_TOTAL}`);
     
     updateXPBar();
     animateXPGain(xpChange);
@@ -496,9 +495,9 @@ function salvarProgressoDetalhado(acertou) {
 }
 
 // ============================================
-// SALVAR XP NO BANCO (JOGO 4)
+// SALVAR XP NO BANCO (JOGO 3) - CORRIGIDO
 // ============================================
-function salvarXPJogo4() {
+function salvarXPJogo3() {
     if (xpGanhoNaRodadaAtual === 0) {
         console.log('⚠️ Nenhum XP para salvar');
         return;
@@ -506,27 +505,26 @@ function salvarXPJogo4() {
 
     const formData = new FormData();
     formData.append('nomeAluno', NOME_ALUNO);
-    formData.append('jogo', JOGO_NUMERO);
     formData.append('fase', NUMERO_FASE);
     formData.append('xp', xpGanhoNaRodadaAtual);
 
-    console.log('📤 Salvando XP Jogo 4:', {
+    console.log('📤 Salvando XP Jogo 3:', {
         aluno: NOME_ALUNO,
-        jogo: JOGO_NUMERO,
         fase: NUMERO_FASE,
         xp_mudanca: xpGanhoNaRodadaAtual
     });
 
+    // ✅ CORREÇÃO: Usar salvar_xp3.php (arquivo correto para Jogo 3)
     fetch('../mapa/salvar_xp3.php', {
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
-        console.log('📥 Resposta Jogo 4:', data);
+        console.log('📥 Resposta Jogo 3:', data);
         
         if (data.sucesso) {
-            console.log(`✅ Salvo! XP Fase ${NUMERO_FASE}: ${data.xp_fase}/40 | XP Total: ${data.xp_total} | Estrelas: ${data.estrelas}`);
+            console.log(`✅ Salvo! XP Fase ${NUMERO_FASE}: ${data.xp_fase}/50 | XP Total: ${data.xp_total} | Estrelas: ${data.estrelas}`);
         } else {
             console.error('❌ Erro:', data.mensagem);
         }
@@ -585,7 +583,7 @@ function processAnswer() {
 
     console.log('💾 Salvando no banco...');
     salvarProgressoDetalhado(isCorrect);
-    salvarXPJogo4();
+    salvarXPJogo3();
 
     nextBtn.style.display = "block";
 }
@@ -595,10 +593,10 @@ function avancar() {
     if (proximaFase <= 10) {
         window.location.href = 'fase' + proximaFase + '.php';
     } else {
-        window.location.href = '../mapa/mapa.php';
+        // ⭐ CORREÇÃO: Voltar para o mapa quando completar todas as fases
+        window.location.href = '../mapa/fases.php';
     }
 }
-
 // ============================================
 // EVENT LISTENERS
 // ============================================

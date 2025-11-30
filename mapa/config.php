@@ -294,14 +294,14 @@ function verificarLogin() {
 /**
  * Registra XP de forma acumulativa (UMA LINHA por usuário)
  */
+// ⭐ SUBSTITUA A FUNÇÃO registrarXPFase() NO config.php POR ESTA VERSÃO CORRIGIDA:
+
 function registrarXPFase($pdo, $usuario_id, $fase, $xp_ganho) {
-    // Validar fase (1-10)
     if ($fase < 1 || $fase > 10) {
         error_log("❌ Fase inválida: $fase");
         return false;
     }
     
-    // Buscar nome do usuário
     $stmt_nome = $pdo->prepare("SELECT nome FROM usuarios WHERE id = ?");
     $stmt_nome->execute([$usuario_id]);
     $usuario = $stmt_nome->fetch();
@@ -313,7 +313,7 @@ function registrarXPFase($pdo, $usuario_id, $fase, $xp_ganho) {
     
     $nomeAluno = $usuario['nome'];
     $xp_maximo_por_fase = 10;
-    $xp_maximo_total = 100;
+    $xp_maximo_total = 10;
 
     try {
         // PRIMEIRO: Criar linha se não existir
@@ -321,7 +321,6 @@ function registrarXPFase($pdo, $usuario_id, $fase, $xp_ganho) {
         $valores = "?, ?";
         $params_init = [$usuario_id, $nomeAluno];
         
-        // Adicionar colunas para todas as 10 fases
         for ($i = 1; $i <= 10; $i++) {
             $colunas .= ", fase" . $i . "_xp";
             $valores .= ", 0";
@@ -336,22 +335,31 @@ function registrarXPFase($pdo, $usuario_id, $fase, $xp_ganho) {
         ");
         $stmt_init->execute($params_init);
         
-        // SEGUNDO: Atualizar XP da fase específica
+        // SEGUNDO: Obter XP atual ANTES de atualizar
+        $xp_fase_atual = obterXPFase($pdo, $usuario_id, $fase);
+        $xp_total_atual = obterXPTotal($pdo, $usuario_id);
+        
+        // Calcular novos valores com limite
+        $novo_xp_fase = min($xp_maximo_por_fase, $xp_fase_atual + $xp_ganho);
+        $novo_xp_total = min($xp_maximo_total, $xp_total_atual + $xp_ganho);
+        
+        // TERCEIRO: Atualizar com valores calculados
         $coluna_fase = "fase" . $fase . "_xp";
         $stmt_update = $pdo->prepare("
             UPDATE xp_jogo1 
-            SET $coluna_fase = GREATEST(0, LEAST(?, $coluna_fase + ?)),
-                total_xp = GREATEST(0, LEAST(?, total_xp + ?)),
+            SET $coluna_fase = ?,
+                total_xp = ?,
                 dataRegistro = NOW()
             WHERE usuario_id = ?
         ");
         
-        $stmt_update->execute([$xp_maximo_por_fase, $xp_ganho, $xp_maximo_total, $xp_ganho, $usuario_id]);
+        $stmt_update->execute([$novo_xp_fase, $novo_xp_total, $usuario_id]);
         
-        // Log de sucesso
-        $xp_atual = obterXPFase($pdo, $usuario_id, $fase);
-        $xp_total = obterXPTotal($pdo, $usuario_id);
-        error_log("✅ XP registrado - Usuário: $nomeAluno | Fase: $fase | Ganho: $xp_ganho | Fase: $xp_atual/10 | Total: $xp_total/100");
+        // Log detalhado
+        error_log("✅ XP registrado - Usuário: $nomeAluno | Fase: $fase");
+        error_log("   XP Ganho: $xp_ganho");
+        error_log("   XP Fase: $xp_fase_atual → $novo_xp_fase");
+        error_log("   XP Total: $xp_total_atual → $novo_xp_total");
         
         return true;
         
@@ -361,6 +369,36 @@ function registrarXPFase($pdo, $usuario_id, $fase, $xp_ganho) {
     }
 }
 
+// ⭐ FUNÇÃO AUXILIAR PARA RECALCULAR TOTAL_XP (CASO PRECISE CORRIGIR)
+function recalcularTotalXP($pdo, $usuario_id) {
+    try {
+        $stmt = $pdo->prepare("
+            UPDATE xp_jogo1 
+            SET total_xp = (
+                COALESCE(fase1_xp, 0) + 
+                COALESCE(fase2_xp, 0) + 
+                COALESCE(fase3_xp, 0) + 
+                COALESCE(fase4_xp, 0) + 
+                COALESCE(fase5_xp, 0) + 
+                COALESCE(fase6_xp, 0) + 
+                COALESCE(fase7_xp, 0) + 
+                COALESCE(fase8_xp, 0) + 
+                COALESCE(fase9_xp, 0) + 
+                COALESCE(fase10_xp, 0)
+            )
+            WHERE usuario_id = ?
+        ");
+        $stmt->execute([$usuario_id]);
+        
+        $xp_total = obterXPTotal($pdo, $usuario_id);
+        error_log("✅ Total XP recalculado: $xp_total");
+        
+        return true;
+    } catch (PDOException $e) {
+        error_log("❌ Erro ao recalcular total XP: " . $e->getMessage());
+        return false;
+    }
+}
 /**
  * Obtém o XP total do usuário (soma de todas as fases)
  */
@@ -520,20 +558,21 @@ function faseDesbloqueada($pdo, $usuario_id, $numero_fase) {
         return ($estrelas_fase1 >= 1);
     }
     
-    // ⭐ MUDANÇA CRÍTICA: Se fase anterior é 2, verifica se tem pelo menos 1 ESTRELA
+    // Se fase anterior é 2, verifica se tem pelo menos 1 ESTRELA
     if ($fase_anterior == 2) {
         $estrelas_fase2 = obterEstrelasPorXP($pdo, $usuario_id, 2, true);
         return ($estrelas_fase2 >= 1); // ⭐ 1+ estrela na Fase 2 desbloqueia Fase 3
     }
     
-    // Se fase anterior é 3 (Jogo 2 - Fase 1), verifica se completou
+    // ⭐ CORREÇÃO: Se fase anterior é 3, verifica se tem pelo menos 1 ESTRELA na Fase 3
     if ($fase_anterior == 3) {
-        $xp_fase1_jogo2 = obterXPFaseJogo2($pdo, $usuario_id, 1);
-        return ($xp_fase1_jogo2 >= 2); // Precisa de 2+ XP no Jogo 2
+        $estrelas_fase3 = obterEstrelasPorXP($pdo, $usuario_id, 3, true);
+        return ($estrelas_fase3 >= 1); // ⭐ 1+ estrela na Fase 3 desbloqueia Fase 4
     }
     
     return false;
 }
+
 
 function contarEstrelasFase($pdo, $usuario_id, $numero_fase) {
     $stmt = $pdo->prepare("SELECT nome FROM usuarios WHERE id = ?");
@@ -655,18 +694,24 @@ function obterEstrelasPorXP($pdo, $usuario_id, $numero_fase, $fase_desbloqueada 
         return 0;
     }
     
-    // ⭐ NOVO: Fase 3: Usa XP TOTAL do Jogo 2
+    // Fase 3: Usa XP TOTAL do Jogo 2
     if ($numero_fase == 3) {
         $xp_total_jogo2 = obterXPTotalJogo2($pdo, $usuario_id);
         
-        if ($xp_total_jogo2 >= 8) return 3;
-        elseif ($xp_total_jogo2 >= 5) return 2;
-        elseif ($xp_total_jogo2 >= 2) return 1;
+        if ($xp_total_jogo2 >= 32) return 3;
+        elseif ($xp_total_jogo2 >= 20) return 2;
+        elseif ($xp_total_jogo2 >= 8) return 1;
         return 0;
     }
     
-    // Fase 4: Ainda não implementada
+    // ⭐ CORREÇÃO: Fase 4: Usa XP TOTAL do Jogo 3 (Espelhos de Midgard)
     if ($numero_fase == 4) {
+        $xp_total_jogo3 = obterXPTotalJogo3($pdo, $usuario_id);
+        
+        // 50 XP máximo = 100%
+        if ($xp_total_jogo3 >= 40) return 3;      // 80%+ = 40-50 XP = 3 estrelas
+        elseif ($xp_total_jogo3 >= 25) return 2;  // 50%+ = 25-39 XP = 2 estrelas  
+        elseif ($xp_total_jogo3 >= 10) return 1;  // 20%+ = 10-24 XP = 1 estrela
         return 0;
     }
     
@@ -701,8 +746,8 @@ function registrarXPJogo2($pdo, $usuario_id, $fase, $xp_ganho) {
     }
     
     $nomeAluno = $usuario['nome'];
-    $xp_maximo_por_fase = 10;
-    $xp_maximo_total = 100;
+    $xp_maximo_por_fase = 40;
+    $xp_maximo_total = 40;
 
     try {
         // ⭐ VERIFICAR SE JÁ EXISTE LINHA PARA ESTE USUÁRIO
@@ -922,6 +967,144 @@ function obterProgressoFases2($pdo, $usuario_id) {
         error_log("Erro ao obter progresso das fases Jogo 2: " . $e->getMessage());
         return array_fill(1, 10, ['xp_obtido' => 0, 'xp_total_fase' => 10]);
     }
+}
+
+// ============================================
+// FUNÇÕES PARA JOGO 4 (Espelhos de Midgard)
+// ============================================
+
+// ============================================
+// FUNÇÕES PARA JOGO 3 (Espelhos de Midgard) - usa xp_jogo3
+// ============================================
+
+/**
+ * Registra XP para o Jogo 3 (Espelhos de Midgard) - 50 XP máximo
+ */
+function registrarXPJogo3($pdo, $usuario_id, $fase, $xp_ganho) {
+    if ($fase < 1 || $fase > 10) {
+        error_log("❌ Fase inválida para Jogo 3: $fase");
+        return false;
+    }
+    
+    $stmt_nome = $pdo->prepare("SELECT nome FROM usuarios WHERE id = ?");
+    $stmt_nome->execute([$usuario_id]);
+    $usuario = $stmt_nome->fetch();
+    
+    if (!$usuario) {
+        error_log("❌ Usuário não encontrado: ID $usuario_id");
+        return false;
+    }
+    
+    $nomeAluno = $usuario['nome'];
+    $xp_maximo_por_fase = 50; // ⭐ MUDADO: 50 XP por fase
+    $xp_maximo_total = 50;    // ⭐ MUDADO: 50 XP total máximo
+
+    try {
+        // Verificar se já existe linha
+        $stmt_check = $pdo->prepare("SELECT id FROM xp_jogo3 WHERE usuario_id = ?");
+        $stmt_check->execute([$usuario_id]);
+        $existe = $stmt_check->fetch();
+        
+        if (!$existe) {
+            // Criar linha inicial com 8 fases
+            $colunas = "usuario_id, nomeAluno";
+            $valores = "?, ?";
+            $params_init = [$usuario_id, $nomeAluno];
+            
+            for ($i = 1; $i <= 8; $i++) {
+                $colunas .= ", fase" . $i . "_xp";
+                $valores .= ", 0";
+            }
+            $colunas .= ", total_xp";
+            $valores .= ", 0";
+            
+            $stmt_init = $pdo->prepare("
+                INSERT INTO xp_jogo3 ($colunas, dataRegistro)
+                VALUES ($valores, NOW())
+            ");
+            $stmt_init->execute($params_init);
+            
+            error_log("✅ Linha criada para Jogo 3 - usuário $nomeAluno (ID: $usuario_id)");
+        }
+        
+        // Obter XP atual
+        $xp_fase_atual = obterXPFaseJogo3($pdo, $usuario_id, $fase);
+        $xp_total_atual = obterXPTotalJogo3($pdo, $usuario_id);
+        
+        // Calcular novos valores com limite
+        $novo_xp_fase = min($xp_maximo_por_fase, max(0, $xp_fase_atual + $xp_ganho));
+        $novo_xp_total = min($xp_maximo_total, max(0, $xp_total_atual + $xp_ganho));
+        
+        // Atualizar XP
+        $coluna_fase = "fase" . $fase . "_xp";
+        $stmt_update = $pdo->prepare("
+            UPDATE xp_jogo3 
+            SET $coluna_fase = ?,
+                total_xp = ?,
+                dataRegistro = NOW()
+            WHERE usuario_id = ?
+        ");
+        
+        $stmt_update->execute([$novo_xp_fase, $novo_xp_total, $usuario_id]);
+        
+        error_log("✅ XP Jogo 3 - Usuário: $nomeAluno | Fase: $fase");
+        error_log("   XP Ganho: $xp_ganho");
+        error_log("   XP Fase: $xp_fase_atual → $novo_xp_fase / $xp_maximo_por_fase");
+        error_log("   XP Total: $xp_total_atual → $novo_xp_total / $xp_maximo_total");
+        
+        return true;
+        
+    } catch (PDOException $e) {
+        error_log("❌ Erro ao registrar XP Jogo 3: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Obtém XP total do Jogo 3
+ */
+function obterXPTotalJogo3($pdo, $usuario_id) {
+    try {
+        $stmt = $pdo->prepare("SELECT total_xp FROM xp_jogo3 WHERE usuario_id = ?");
+        $stmt->execute([$usuario_id]);
+        $result = $stmt->fetch();
+        return $result ? intval($result['total_xp']) : 0;
+    } catch (PDOException $e) {
+        error_log("Erro ao obter XP total Jogo 3: " . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Obtém XP de uma fase específica do Jogo 3
+ */
+function obterXPFaseJogo3($pdo, $usuario_id, $fase) {
+    try {
+        $coluna_fase = "fase" . $fase . "_xp";
+        $stmt = $pdo->prepare("SELECT $coluna_fase FROM xp_jogo3 WHERE usuario_id = ?");
+        $stmt->execute([$usuario_id]);
+        $result = $stmt->fetch();
+        return $result ? intval($result[$coluna_fase]) : 0;
+    } catch (PDOException $e) {
+        error_log("Erro ao obter XP da fase Jogo 3: " . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Registra XP completo do Jogo 3
+ */
+function registrarXPCompleto3($pdo, $usuario_id, $fase, $xp) {
+    return registrarXPJogo3($pdo, $usuario_id, $fase, $xp);
+}
+
+// ⭐ ALIAS para compatibilidade
+function obterXPTotal3($pdo, $usuario_id) {
+    return obterXPTotalJogo3($pdo, $usuario_id);
+}
+
+function obterXPFase3($pdo, $usuario_id, $fase) {
+    return obterXPFaseJogo3($pdo, $usuario_id, $fase);
 }
 
 ?>

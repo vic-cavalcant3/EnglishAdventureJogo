@@ -140,15 +140,23 @@ $xp_total_jogo2 = obterXPTotal2($pdo, $usuario_id);
         }
         /* ---------------- BOTÃO AVANÇAR ---------------- */
         #next-phase-btn-outside {
-            width: 280px; background: #B9794C;
-            padding: 10px; border-radius: 40px;
-            margin-top: 25px; display: none;
-            color: white; font-size: 16px; font-weight: 600;
-            cursor: pointer; border: none;
-            transition: 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+              width: 280px;
+            background: #3b2a20;
+            padding: 10px;
+            border-radius: 40px;
+            margin-top: 25px;
+            display: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         #next-phase-btn-outside:hover {
-            background: #a36b41; transform: scale(1.03);
+                               background: #2c1e15;
+            transform: scale(1.03);
         }
         /* XP BAR */
         .xp-container {
@@ -300,6 +308,7 @@ $xp_total_jogo2 = obterXPTotal2($pdo, $usuario_id);
 // ============================================
 const NOME_ALUNO = "<?php echo $nomeAluno; ?>";
 const NUMERO_FASE = <?php echo $numero_fase; ?>;
+const JOGO_NUMERO = <?php echo $jogo_numero; ?>;
 const NOME_ATIVIDADE = "<?php echo $nome_atividade; ?>";
 const TIPO_GRAMATICA = "<?php echo $tipo_gramatica; ?>";
 const TIPO_HABILIDADE = "<?php echo $tipo_habilidade; ?>";
@@ -422,7 +431,7 @@ function salvarXPNoBanco() {
     formData.append('nomeAluno', NOME_ALUNO);
     formData.append('fase', NUMERO_FASE);
     formData.append('xp', xpGanhoNaRodadaAtual);
-    fetch('../mapa/salvar_xp.php', {
+    fetch('../mapa/salvar_xp3.php', {
         method: 'POST',
         body: formData
     })
@@ -610,12 +619,7 @@ if (recognition) {
 }
 
 function avancar() {
-    const proximaFase = NUMERO_FASE + 1;
-    if (proximaFase <= 10) {
-        window.location.href = 'fase' + proximaFase + '.php';
-    } else {
-        window.location.href = '../mapa/fases.php';
-    }
+    window.location.href = '../mapa/fases.php';
 }
 
     </script>

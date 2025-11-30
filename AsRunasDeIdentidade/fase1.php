@@ -590,7 +590,7 @@ options.forEach(btn => {
         if (isCorrect) {
             chosenSpan.style.color = "green";
             feedback.textContent = "✔ Resposta correta!";
-            feedback.style.color = "#2e7d32";
+            feedback.style.color = "#388e3c";
             btn.classList.add("selected-correct");
             giveXP(true);
         } else {

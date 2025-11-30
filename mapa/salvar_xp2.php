@@ -90,9 +90,9 @@ if (isset($_POST['nomeAluno'], $_POST['fase'], $_POST['xp'])) {
 
 // 🌟 FUNÇÃO PARA CALCULAR ESTRELAS BASEADO NO XP
 function calcularEstrelasPorXP($xp_fase) {
-    if ($xp_fase >= 9) return 3;      // 9-10 XP = 3 estrelas
-    if ($xp_fase >= 6) return 2;      // 6-8 XP = 2 estrelas
-    if ($xp_fase >= 3) return 1;      // 3-5 XP = 1 estrela
+    if ($xp_fase >= 32) return 3;      // 9-10 XP = 3 estrelas
+    if ($xp_fase >= 20) return 2;      // 6-8 XP = 2 estrelas
+    if ($xp_fase >= 8) return 1;      // 3-5 XP = 1 estrela
     return 0;                          // 0-2 XP = sem estrelas
 }
 
