@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carrossel de Páginas</title>
+
+    <!-- FONTE POPPINS -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: transparent;
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #dictionaryWrapper {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 1;
+        pointer-events: auto;
+        transition: 0.4s ease;
+        z-index: 10;
+      }
+
+      #paperCarousel {
+        position: relative;
+        width: 420px;
+        height: 540px;
+      }
+
+      .paper {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #fdf2df;
+        padding: 30px;
+        border-radius: 6px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        opacity: 0;
+        transition: 0.45s ease;
+        transform-origin: center center;
+      }
+
+      .paper p {
+        margin-bottom: 58px;
+      }
+
+      .paper.active {
+        opacity: 1;
+        z-index: 3;
+        transform: rotate(0deg) scale(1);
+      }
+
+      .paper.left {
+        opacity: 0.6;
+        z-index: 2;
+        transform: rotate(-7deg) translateX(-140px) scale(0.9);
+      }
+
+      .paper.right {
+        opacity: 0.6;
+        z-index: 2;
+        transform: rotate(7deg) translateX(140px) scale(0.9);
+      }
+
+      .page-controls {
+        position: absolute;
+        bottom: 25px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 50px;
+      }
+
+      .page-controls button {
+        background: none;
+        border: none;
+        font-size: 26px;
+        cursor: pointer;
+      }
+
+      .page-controls button:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+
+      .paper h2 {
+        margin-top: 0;
+        text-align: center;
+        font-size: 28px;
+      }
+
+.exit-btn {
+    display: block;
+    margin: 15px auto 0;
+    padding: 8px 20px;      /* deixa o botão clicável */
+    background:  #1b1b1b;  
+    border: 2px solid #1b1b1b;  /* adiciona borda */
+    border-radius: 8px;      /* cantos arredondados */
+    font-family: "Poppins", sans-serif;
+    font-size: 16px;
+        color: #ffffff;      /* cor do texto */
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.exit-btn:hover {
+    background: transparent;    /* fundo ao passar o mouse */
+        color: #1b1b1b;       /* texto branco no hover */
+    text-decoration: none;
+    transform: scale(1.05);   /* leve zoom ao passar o mouse */
+}
+
+     
+    </style>
+  </head>
+
+  <body>
+    <div id="dictionaryWrapper">
+      <div id="paperCarousel">
+        <!-- ===================== TODAS AS 14 PÁGINAS ===================== -->
+
+        <!-- Página 1 -->
+        <div class="paper page-1">
+          <h2>Dictionary</h2>
+          <p><b>A:</b> um / uma<br />This is a shield. → Isso é um escudo.</p>
+          <p><b>Alone:</b> sozinho<br />The warrior is alone in the forest. → O guerreiro está sozinho na floresta.</p>
+          <p><b>Am:</b> sou / estou<br />I am brave. → Eu sou corajoso.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 2 -->
+        <div class="paper page-2">
+          <h2>Dictionary</h2>
+          <p><b>Are:</b> são / estão<br />They are ready for the quest. → Eles estão prontos para a missão.</p>
+          <p><b>Best:</b> melhor<br />You are my best friend. → Você é meu melhor amigo.</p>
+          <p><b>Brave:</b> corajoso<br />She is brave like a viking. → Ela é corajosa como um viking.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 3 -->
+        <div class="paper page-3">
+          <h2>Dictionary</h2>
+          <p><b>Cold:</b> frio<br />The night is very cold. → A noite está muito fria.</p>
+          <p><b>Confident:</b> confiante<br />He feels confident today. → Ele se sente confiante hoje.</p>
+          <p><b>Dark:</b> escuro<br />The wolf came from the dark forest. → O lobo veio da floresta escura.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 4 -->
+        <div class="paper page-4">
+          <h2>Dictionary</h2>
+          <p><b>Dragon:</b> dragão<br />The dragon is powerful. → O dragão é poderoso.</p>
+          <p><b>Face:</b> rosto<br />His face looks tired. → O rosto dele parece cansado.</p>
+          <p><b>Fine:</b> bem<br />I am fine, thank you. → Eu estou bem, obrigado.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 5 -->
+        <div class="paper page-5">
+          <h2>Dictionary</h2>
+          <p><b>Forest:</b> floresta<br />They walk through the forest. → Eles caminham pela floresta.</p>
+          <p><b>Friend:</b> amigo<br />My friend is a great warrior. → Meu amigo é um grande guerreiro.</p>
+          <p><b>Happy:</b> feliz<br />She is happy with her shield. → Ela está feliz com o escudo dela.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 6 -->
+        <div class="paper page-6">
+          <h2>Dictionary</h2>
+          <p><b>He:</b> ele<br />He is strong. → Ele é forte.</p>
+          <p><b>Hero:</b> herói<br />The viking is a hero in his village. → O viking é um herói na sua aldeia.</p>
+          <p><b>I:</b> eu<br />I am a viking. → Eu sou um viking.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 7 -->
+        <div class="paper page-7">
+          <h2>Dictionary</h2>
+          <p><b>It:</b> ele/ela (coisas)<br />It is a magical sword. → É uma espada mágica.</p>
+          <p><b>Liar:</b> mentiroso<br />He is a liar. → Ele é um mentiroso.</p>
+          <p><b>Lost:</b> perdido<br />The warrior is lost in the mountains. → O guerreiro está perdido nas montanhas.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 8 -->
+        <div class="paper page-8">
+          <h2>Dictionary</h2>
+          <p><b>Magical:</b> mágico<br />This is a magical shield. → Este é um escudo mágico.</p>
+          <p><b>My:</b> meu / minha<br />My village is safe. → Minha aldeia está segura.</p>
+          <p><b>Powerful:</b> poderoso<br />The dragon is powerful. → O dragão é poderoso.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 9 -->
+        <div class="paper page-9">
+          <h2>Dictionary</h2>
+          <p><b>Quest:</b> missão / jornada<br />The quest begins now. → A missão começa agora.</p>
+          <p><b>Ready:</b> pronto<br />We are ready to fight. → Nós estamos prontos para lutar.</p>
+          <p><b>Sad:</b> triste<br />The hero is sad today. → O herói está triste hoje.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 10 -->
+        <div class="paper page-10">
+          <h2>Dictionary</h2>
+          <p><b>She:</b> ela<br />She is smart and brave. → Ela é inteligente e corajosa.</p>
+          <p><b>Shield:</b> escudo<br />The shield is heavy. → O escudo é pesado.</p>
+          <p><b>Smart:</b> inteligente<br />He is a smart warrior. → Ele é um guerreiro inteligente.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 11 -->
+        <div class="paper page-11">
+          <h2>Dictionary</h2>
+          <p><b>Strong:</b> forte<br />The vikings are strong. → Os vikings são fortes.</p>
+          <p><b>Teacher:</b> professor<br />The teacher is in the village. → O professor está na aldeia.</p>
+          <p><b>They:</b> eles / elas<br />They are brave warriors. → Eles são guerreiros corajosos.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 12 -->
+        <div class="paper page-12">
+          <h2>Dictionary</h2>
+          <p><b>Tired:</b> cansado<br />She is tired after the battle. → Ela está cansada após a batalha.</p>
+          <p><b>Viking:</b> viking<br />The viking is ready for the quest. → O viking está pronto para a missão.</p>
+          <p><b>Villages:</b> aldeias<br />The villages are peaceful. → As aldeias são pacíficas.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 13 -->
+        <div class="paper page-13">
+          <h2>Dictionary</h2>
+          <p><b>Warriors:</b> guerreiros<br />The warriors are strong. → Os guerreiros são fortes.</p>
+          <p><b>We:</b> nós<br />We are a team. → Nós somos um time.</p>
+          <p><b>Wolf:</b> lobo<br />The wolf watches from the forest. → O lobo observa da floresta.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage">→</button>
+          </div>
+        </div>
+
+        <!-- Página 14 -->
+        <div class="paper page-14">
+          <h2>Dictionary</h2>
+          <p><b>Your:</b> seu / sua<br />Your shield is magical. → Seu escudo é mágico.</p>
+          <button class="exit-btn" onclick="window.parent.closeDictionary()">Sair</button>
+          <div class="page-controls">
+            <button class="prevPage">←</button>
+            <button class="nextPage" disabled>→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const pages = document.querySelectorAll(".paper");
+      let current = 0;
+
+      function updatePages() {
+        pages.forEach((page, index) => {
+          page.classList.remove("active", "left", "right");
+          if (index === current) page.classList.add("active");
+          else if (index === current - 1) page.classList.add("left");
+          else if (index === current + 1) page.classList.add("right");
+        });
+      }
+
+      document.querySelectorAll(".nextPage").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (current < pages.length - 1) current++;
+          updatePages();
+        });
+      });
+
+      document.querySelectorAll(".prevPage").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (current > 0) current--;
+          updatePages();
+        });
+      });
+
+      updatePages();
+    </script>
+  </body>
+</html>

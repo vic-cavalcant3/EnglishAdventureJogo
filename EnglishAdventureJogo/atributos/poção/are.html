@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tela de Exemplo</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* Reset básico */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            /* 🔑 CHAVE 2: Define Poppins como a fonte principal */
+            font-family: 'Poppins', sans-serif; 
+        }
+
+        /* Container principal */
+        .container {
+           background-color: #7d242395; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; /* Centraliza horizontalmente */
+            
+            justify-content: flex-start; 
+            
+            padding: 40px 20px; 
+            text-align: center;
+        }
+
+        /* Estilo para o contêiner do ícone */
+        .icone-container {
+            align-self: center; 
+            margin-bottom: 50px; 
+        }
+
+        /* Estilo para a imagem do ícone */
+        .icone-frasco {
+            width: 60px; 
+            height: auto; 
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+        }
+
+        /* Novo div para agrupar o texto e o botão na parte inferior */
+        .conteudo-inferior {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; 
+
+            margin-top: auto; 
+            /* Mantém o valor de 140px para manter o bloco mais acima */
+            margin-bottom: 140px; 
+        }
+
+        /* Estilo para o texto principal */
+        .texto-principal {
+            color: #FFFFFF; 
+            font-size: 20px;
+            margin-bottom: 30px; 
+            max-width: 80%;
+            color: #FFF; 
+            /* A Poppins já está definida no body, mas garantimos aqui */
+            font-family: 'Poppins', sans-serif; 
+        }
+        
+        /* Ajusta o peso da fonte (weight) para o negrito usando Poppins */
+        .texto-principal strong {
+            font-weight: 900; 
+        }
+
+        /* Estilo para o botão Avançar */
+        .botao-avancar {
+            background-color: #BD7F5A; 
+            color: #FFFFFF; 
+            border: none; 
+            border-radius: 26px; 
+            padding: 12px 70px; 
+            font-size: 16px;
+            /* Usa um peso que combine bem com a Poppins */
+            font-weight: 600; 
+            cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); 
+            transition: background-color 0.3s ease; 
+            margin-bottom: -5px;
+            margin-top: 15px;
+            /* A Poppins já está definida no body, mas garantimos aqui */
+            font-family: 'Poppins', sans-serif; 
+        }
+
+        /* Efeito ao passar o mouse sobre o botão (opcional) */
+        .botao-avancar:hover {
+            background-color: #A36B4A; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="icone-container">
+            <img src="/imgs/pocao.png" alt="Ícone de frasco" class="icone-frasco">
+        </div>
+
+        <div class="conteudo-inferior">
+            <p class="texto-principal">
+                Are é apenas usado para <strong>You</strong>, <strong>They</strong>, <strong>We</strong>
+            </p>
+   <button class="botao-avancar" id="fecharPocaoBtn" onclick="window.parent.closePocao()">
+                Avançar
+            </button>
+        </div>
+        
+    </div>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Modal Pergaminho</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Irish+Grover&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.modal-wrapper {
+  width: 100%;
+  max-width: 980px;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.modal {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  padding: 8vw 10vw;
+  overflow-y: auto;
+  background-image: url("imgs/pergaminho.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #4a2e1a;
+  transition: 0.3s ease;
+}
+
+.no-scroll-bg {
+  background-image: none !important;
+  background-color: #f4e3c3 !important;
+  border-radius: 15px;
+  border: 3px solid #c6a67a;
+}
+
+.modal h2 {
+  font-family: "Irish Grover", cursive;
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+  margin-bottom: 10px;
+}
+
+.modal p {
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  max-width: 70%;
+  margin-bottom: 25px;
+  line-height: 1.4;
+}
+
+.buttons {
+  display: flex;
+  gap: clamp(6px, 1.5vw, 12px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-sim,
+.btn-voltar {
+  padding: clamp(6px, 1vw, 12px) clamp(14px, 2vw, 22px);
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: clamp(0.7rem, 1.7vw, 0.9rem);
+  white-space: nowrap;
+  transition: 0.2s;
+}
+
+.btn-sim {
+  background: #4a2e1a;
+  color: #fff;
+}
+
+.btn-sim:hover {
+  opacity: 0.8;
+}
+
+.btn-voltar {
+  background: transparent;
+  color: #4a2e1a;
+  font-weight: bold;
+}
+
+.btn-voltar:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .modal-wrapper {
+    width: 95%;
+    max-height: 90vh;
+  }
+  .modal {
+    padding: 20px;
+    background-image: none !important;
+    background-color: #f4e3c3 !important;
+    border-radius: 15px;
+    border: 3px solid #c6a67a;
+  }
+  .modal p {
+    max-width: 95%;
+  }
+  .btn-sim,
+  .btn-voltar {
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 14px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="overlay" id="modal">
+  <div class="modal-wrapper">
+    <div class="modal" id="scrollCheck">
+      <h2>Atenção!!</h2>
+
+      <p>
+        Ao abandonar a partida, você não receberá a recompensa final.
+        Você tem certeza que deseja parar de jogar?
+      </p>
+
+      <div class="buttons">
+        <button class="btn-sim" onclick="sairDoJogo()">SIM</button>
+        <button class="btn-voltar" id="retomarBtn">DESEJO RETOMAR AO JOGO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function sairDoJogo() {
+  window.top.location.href = "../mapa/fases.php";
+}
+
+// Aqui está o novo clique do RETOMAR CORRETO:
+document.getElementById("retomarBtn").addEventListener("click", function() {
+  // Envia mensagem pro iframe pai dizendo para fechar o modal
+  window.parent.postMessage({ action: "retomarJogo" }, "*");
+});
+
+</script>
+
+</body>
+</html>
